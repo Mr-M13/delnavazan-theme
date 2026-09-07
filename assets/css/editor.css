@@ -1,0 +1,20 @@
+body {
+  direction: rtl;
+  font-family: Vazirmatn, Tahoma, Arial, sans-serif;
+  line-height: 1.85;
+}
+
+.editor-styles-wrapper {
+  color: var(--wp--preset--color--text-primary);
+  background: var(--wp--preset--color--background);
+}
+
+.editor-styles-wrapper a {
+  color: var(--wp--preset--color--action-secondary);
+  text-underline-offset: .2em;
+}
+
+.editor-styles-wrapper :where(code, kbd, samp, var, [dir="ltr"]) {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
