@@ -1,0 +1,10 @@
+.DS_Store
+Thumbs.db
+
+/dist/
+*.zip
+*.sha256
+
+/node_modules/
+/vendor/
+.phpunit.result.cache
