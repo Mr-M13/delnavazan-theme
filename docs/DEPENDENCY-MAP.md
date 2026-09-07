@@ -1,7 +1,7 @@
 # Production Dependency Map
 
-Date: 6 September 2026  
-Production mode: read-only  
+Date: 6 September 2026
+Production mode: read-only
 Evidence labels: **Observed** means directly verified in production by this workstream; **Secondary** means verified by the stopped secondary chat and independently corroborated where noted; **Inferred** means a migration conclusion derived from observed markup/assets.
 
 ## Cross-site presentation stack

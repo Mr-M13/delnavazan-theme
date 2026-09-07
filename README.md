@@ -2,7 +2,7 @@
 
 Authoritative repository for the Delnavazan whole-site production WordPress theme.
 
-Current foundation: **0.2.0**  
+Current foundation: **0.2.0**
 Status: **inactive; not deployed to staging or production**
 
 ## Vision

@@ -1,6 +1,6 @@
 # Production Presentation Reconnaissance
 
-Date: 6 September 2026  
+Date: 6 September 2026
 Mode: read-only public and authenticated metadata inspection
 
 ## Current platform
