@@ -1,5 +1,9 @@
 # Recommended Increment 0.3 Scope
 
+Preparation status: repository-owned preflight tooling is ready, but no
+disposable staging target has been identified or modified. See
+`INCREMENT-0.3-PREPARATION.md`.
+
 ## Name
 
 Disposable staging compatibility and representative-page regression.
@@ -7,6 +11,14 @@ Disposable staging compatibility and representative-page regression.
 ## Authorised objective
 
 Exercise the unchanged 0.2.0 theme in a separated, disposable WordPress environment and close only presentation/runtime compatibility defects discovered there. Increment 0.3 is a validation increment, not a production migration or content redesign.
+
+## Redesign boundary
+
+Increment 0.3 is a **compatibility and evidence-gathering gate**. It is not a
+visual redesign increment. After a staging result demonstrates a specific
+problem, only a narrow, reusable compatibility fix may be considered. Page
+redesign, content rewriting, dependency removal, broad styling overhauls and
+the future Cultural Portal hierarchy are out of scope.
 
 ## Exact scope
 

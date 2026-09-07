@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "candidate": {
+    "repository": "Mr-M13/delnavazan-theme",
+    "branch": "codex/increment-0.3-staging-prep",
+    "source_commit": "",
+    "theme_version": "0.2.0",
+    "package_sha256": ""
+  },
+  "authorisation": {
+    "staging_activation_authorised": false,
+    "authorisation_reference": ""
+  },
+  "environment": {
+    "hostname": "",
+    "wp_environment_type": "staging",
+    "access_controlled": false,
+    "database_separate": false,
+    "uploads_separate": false,
+    "cache_namespace_separate": false,
+    "php_version": "",
+    "wordpress_version": ""
+  },
+  "indexing": {
+    "authentication_required": false,
+    "noindex_enabled": false
+  },
+  "side_effects": {
+    "mail_sink_enabled": false,
+    "whatsapp_disabled": false,
+    "outbound_webhooks_blocked": false,
+    "production_webhook_callbacks_blocked": false,
+    "production_payment_callbacks_blocked": false,
+    "amelia_external_side_effects_neutralised": false,
+    "google_calendar_meet_disabled_or_isolated": false,
+    "production_cron_effects_blocked": false,
+    "production_analytics_suppressed": false,
+    "production_integrations_sandboxed_or_absent": false
+  },
+  "data_safety": {
+    "no_live_customer_data": false,
+    "no_live_booking_data": false,
+    "no_live_payment_data": false,
+    "no_live_teacher_private_data": false,
+    "no_live_contact_pii": false,
+    "no_production_database_writes_possible": false
+  },
+  "rollback": {
+    "neve_version": "4.2.3",
+    "snapshot_reference": "",
+    "customizer_exported": false,
+    "menus_widgets_recorded": false,
+    "plugin_state_recorded": false,
+    "neve_baseline_captured": false,
+    "rank_math_baseline_captured": false,
+    "rollback_tested": false,
+    "reset_tested": false,
+    "urls_and_seo_unchanged_proven": false
+  },
+  "plugins": {
+    "rank_math": "",
+    "otter": "",
+    "advanced_post_block": "",
+    "delnavazan_enhancements": "",
+    "amelia": ""
+  },
+  "regression": {
+    "surfaces": [
+      { "key": "homepage", "production_id": 8, "path": "/" },
+      { "key": "articles-index", "production_id": 235, "path": "/articles/" },
+      { "key": "long-form-article", "production_id": 340, "path": "" },
+      { "key": "enrolment", "production_id": 91, "path": "/enrol/" },
+      { "key": "teacher", "production_id": 1096, "path": "" },
+      { "key": "course", "production_id": 1088, "path": "" },
+      { "key": "regional-course", "production_id": 1147, "path": "" },
+      { "key": "booking-received", "production_id": 1023, "path": "/booking-received/" }
+    ],
+    "viewport_widths": [320, 375, 390, 768, 1348]
+  }
+}

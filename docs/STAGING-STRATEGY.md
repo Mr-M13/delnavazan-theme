@@ -6,6 +6,13 @@ Create an access-controlled, disposable WordPress clone on infrastructure separa
 
 The preferred data set is published pages/posts, menus, widgets, media and presentation plugin settings only. If a full copy is operationally unavoidable, restrict access, rotate/remove live integration credentials, block outbound requests and purge personal/business records before testing.
 
+## Compatibility-only rule
+
+Increment 0.3 is a compatibility and evidence-gathering gate, not a redesign
+increment. It may diagnose and narrowly correct a staging-proven presentation
+or runtime defect. It must not redesign pages, rewrite content, remove legacy
+dependencies or introduce a broad styling overhaul.
+
 ## Pre-activation gate
 
 - Confirm hostname, database name/prefix, uploads path and cache namespace differ from production.
