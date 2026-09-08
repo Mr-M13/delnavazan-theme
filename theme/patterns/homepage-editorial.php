@@ -111,7 +111,7 @@
 
 		<!-- wp:group {"className":"dzn-price-ledger","layout":{"type":"default"}} -->
 		<div class="wp-block-group dzn-price-ledger">
-			<!-- wp:group {"className":"dzn-price-ledger__feature","layout":{"type":"default"}} --><div class="wp-block-group dzn-price-ledger__feature"><!-- wp:paragraph {"className":"dzn-price-ledger__label"} --><p class="dzn-price-ledger__label">هزینهٔ یک ترم</p><!-- /wp:paragraph --><!-- wp:paragraph {"className":"dzn-price-ledger__price"} --><p class="dzn-price-ledger__price"><bdi>۲۵۰</bdi> دلار استرالیا</p><!-- /wp:paragraph --></div><!-- /wp:group -->
+			<!-- wp:group {"className":"dzn-price-ledger__feature","layout":{"type":"default"}} --><div class="wp-block-group dzn-price-ledger__feature"><!-- wp:paragraph {"className":"dzn-price-ledger__label"} --><p class="dzn-price-ledger__label">هزینهٔ یک ترم</p><!-- /wp:paragraph --><!-- wp:paragraph {"className":"dzn-price-ledger__price"} --><p class="dzn-price-ledger__price"><bdi dir="ltr">A$250</bdi><span class="dzn-price-ledger__local">۲۵۰ دلار استرالیا</span></p><!-- /wp:paragraph --></div><!-- /wp:group -->
 			<!-- wp:group {"className":"dzn-price-ledger__row","layout":{"type":"default"}} --><div class="wp-block-group dzn-price-ledger__row"><!-- wp:paragraph --><p>مدت ترم</p><!-- /wp:paragraph --><!-- wp:paragraph --><p>۳ ماه</p><!-- /wp:paragraph --></div><!-- /wp:group -->
 			<!-- wp:group {"className":"dzn-price-ledger__row","layout":{"type":"default"}} --><div class="wp-block-group dzn-price-ledger__row"><!-- wp:paragraph --><p>جلسهٔ آموزشی</p><!-- /wp:paragraph --><!-- wp:paragraph --><p>۱۲ جلسه</p><!-- /wp:paragraph --></div><!-- /wp:group -->
 			<!-- wp:group {"className":"dzn-price-ledger__row","layout":{"type":"default"}} --><div class="wp-block-group dzn-price-ledger__row"><!-- wp:paragraph --><p>برنامهٔ کلاس</p><!-- /wp:paragraph --><!-- wp:paragraph --><p>هفته‌ای یک جلسهٔ ۳۰ دقیقه‌ای</p><!-- /wp:paragraph --></div><!-- /wp:group -->
@@ -178,8 +178,8 @@
 </section>
 <!-- /wp:group -->
 
-<!-- wp:group {"tagName":"section","align":"full","className":"dzn-home-section dzn-final-cta","layout":{"type":"constrained"}} -->
-<section class="wp-block-group alignfull dzn-home-section dzn-final-cta">
+<!-- wp:group {"tagName":"section","anchor":"contact","align":"full","className":"dzn-home-section dzn-final-cta","layout":{"type":"constrained"}} -->
+<section id="contact" class="wp-block-group alignfull dzn-home-section dzn-final-cta">
 	<!-- wp:group {"align":"wide","className":"dzn-final-cta__inner","layout":{"type":"default"}} -->
 	<div class="wp-block-group alignwide dzn-final-cta__inner">
 		<!-- wp:group {"layout":{"type":"default"}} --><div class="wp-block-group"><!-- wp:paragraph {"className":"dzn-eyebrow dzn-eyebrow--light"} --><p class="dzn-eyebrow dzn-eyebrow--light">آماده‌اید شروع کنید؟</p><!-- /wp:paragraph --><!-- wp:heading --><h2 class="wp-block-heading">سازتان را انتخاب کنید؛ ادامهٔ راه را با هم می‌سازیم.</h2><!-- /wp:heading --><!-- wp:paragraph --><p>ثبت‌نام اولیه کوتاه است و آغاز مسیر با یک جلسهٔ معارفهٔ رایگان خواهد بود.</p><!-- /wp:paragraph --></div><!-- /wp:group -->
