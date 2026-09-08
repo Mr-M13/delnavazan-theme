@@ -8,3 +8,7 @@ Thumbs.db
 /node_modules/
 /vendor/
 .phpunit.result.cache
+
+# Local staging records can contain environment identifiers. Commit only
+# deliberately redacted evidence under docs/ after review.
+/tests/staging/staging-manifest.local.json

@@ -4,6 +4,32 @@ body {
   line-height: 1.85;
 }
 
+.editor-styles-wrapper .dzn-home-section {
+  padding-block: clamp(3rem, 7vw, 6rem);
+}
+
+.editor-styles-wrapper .dzn-eyebrow {
+  color: var(--wp--preset--color--accent);
+  font-size: .8125rem;
+  font-weight: 800;
+}
+
+.editor-styles-wrapper .dzn-home-hero,
+.editor-styles-wrapper .dzn-courses,
+.editor-styles-wrapper .dzn-editorial {
+  background: var(--wp--preset--color--background);
+}
+
+.editor-styles-wrapper .dzn-pricing {
+  background: var(--wp--preset--color--text-secondary);
+  color: var(--wp--preset--color--on-action);
+}
+
+.editor-styles-wrapper .dzn-final-cta {
+  background: var(--wp--preset--color--accent);
+  color: var(--wp--preset--color--on-action);
+}
+
 .editor-styles-wrapper {
   color: var(--wp--preset--color--text-primary);
   background: var(--wp--preset--color--background);

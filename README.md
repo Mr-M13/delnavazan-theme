@@ -2,8 +2,8 @@
 
 Authoritative repository for the Delnavazan whole-site production WordPress theme.
 
-Current foundation: **0.2.0**
-Status: **inactive; not deployed to staging or production**
+Current development version: **0.4.0**
+Status: **Increment 0.4 candidate; NIU staging only; never production**
 
 ## Vision
 
@@ -17,6 +17,7 @@ Status: **inactive; not deployed to staging or production**
 - Editorial header, Turquoise & Pomegranate semantic tokens, and minimal dependency-free JavaScript.
 - Rank Math retains SEO metadata, canonical, social, schema and sitemap ownership.
 - The theme contains presentation only: no Platform database, workflow, booking, payment, matching, notification or calendar logic.
+- The redesigned homepage is supplied as a Gutenberg core-block pattern; the front-page template continues to render authored content through `the_content()`.
 
 ## Repository layout
 
