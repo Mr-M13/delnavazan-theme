@@ -2,8 +2,8 @@
 
 Authoritative repository for the Delnavazan whole-site production WordPress theme.
 
-Current development version: **0.4.1**
-Status: **Increment 0.4.1 source candidate; runtime validation pending; never production**
+Current development version: **0.4.2**
+Status: **Increment 0.4.2 source candidate; runtime and visual validation pending; never production**
 
 ## Vision
 
@@ -18,6 +18,7 @@ Status: **Increment 0.4.1 source candidate; runtime validation pending; never pr
 - Rank Math retains SEO metadata, canonical, social, schema and sitemap ownership.
 - The theme contains presentation only: no Platform database, workflow, booking, payment, matching, notification or calendar logic.
 - The redesigned homepage is supplied as a Gutenberg core-block pattern; the front-page template continues to render authored content through `the_content()`.
+- Regional price display is Theme presentation only: it can suggest or remember a visitor-selected region, but carries no payment, entitlement, pricing-authority or Platform logic.
 
 ## Repository layout
 

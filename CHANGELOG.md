@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.4.2 — 2026-09-08
+
+- Re-composed the Gutenberg editorial homepage around a media-led hero, aligned facts, instrument discovery, human process reassurance, regional pricing, FAQ, direct contact and selected articles.
+- Replaced the generic homepage trust and course-index blocks with an editable six-instrument visual folio, using deliberately temporary placeholder media until approved academy imagery is supplied.
+- Added a compact Theme-only regional pricing presentation module for AU, NZ, US, CA, EU and GB; it supports manual selection, optional IP-based suggestion and local-only preference persistence without payment or Platform authority.
+- Made the custom logo lead the header and footer, removed the header tagline, and introduced a three-stroke SVG mobile menu control with stateful open/close motion.
+- Tightened responsive editorial type, alignment, mobile gutter containment, focus treatment and section rhythm while retaining the Theme’s no-gradient, no-slider posture.
+- Updated public Theme contact presentation to 0413 413 004, delnavazan@mail.com and @insta.delnavazan; the notification-only number is not exposed.
+- Preserved the corrected offer journey: the free introductory lesson is separate, and payment occurs before the paid 12-lesson term begins.
+
+
 ## 0.4.1 — 2026-09-08
 
 - Added a single responsive gutter and containment contract for Theme pages and Gutenberg homepage sections without viewport-width breakouts or blanket homepage clipping.

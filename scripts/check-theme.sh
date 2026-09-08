@@ -6,6 +6,7 @@ theme_dir="$repo_dir/theme"
 
 node "$repo_dir/tests/static/validate-theme.mjs"
 node --check "$theme_dir/assets/js/navigation.js"
+node --check "$theme_dir/assets/js/pricing-region.js"
 node --check "$repo_dir/scripts/check-staging-readiness.mjs"
 
 if command -v php >/dev/null 2>&1; then

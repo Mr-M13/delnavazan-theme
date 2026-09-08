@@ -29,5 +29,14 @@ function dzn_theme_enqueue_assets() {
 		$version,
 		array( 'strategy' => 'defer', 'in_footer' => true )
 	);
+
+	wp_enqueue_script(
+		'delnavazan-pricing-region',
+		get_theme_file_uri( 'assets/js/pricing-region.js' ),
+		array(),
+		$version,
+		array( 'strategy' => 'defer', 'in_footer' => true )
+	);
+	wp_localize_script( 'delnavazan-pricing-region', 'dznThemePricing', dzn_theme_pricing_presentation_config() );
 }
 add_action( 'wp_enqueue_scripts', 'dzn_theme_enqueue_assets' );

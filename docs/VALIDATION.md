@@ -1,23 +1,23 @@
-# Increment 0.2 Validation Record
+# Validation record
 
-Date: 6 September 2026
+## Increment 0.4.2 source checks
 
-## Completed locally/read-only
+- The dependency-free static suite checks the 0.4.2 homepage pattern, required order, one-H1 rule, payment wording, exact FAQ preservation, contact surface, header and footer contracts, pricing configuration and guarded presentation JavaScript.
+- Source checks forbid Theme business-domain coupling, gradients and viewport-width breakout rules.
+- JavaScript syntax and shell syntax are checked when their respective executables are available.
+- PHP lint is run only when PHP is available.
 
-- Production metadata, rendered DOM, loaded assets, headings, image alternatives, language/direction and representative URLs inspected without writes.
-- `theme.json` parsed successfully with `jq`.
-- Navigation JavaScript passed `node --check`.
-- Runtime PHP/JS/CSS boundary scan found no Platform, Amelia, booking-request, database, remote-request or REST-route coupling.
-- CSS uses the approved brand values only through semantic token definitions; component rules consume variables. Transparent shadows/overlays are derived from white or deep turquoise.
-- Required WordPress template hooks and stable `the_content()` path remain present.
-- Option 2 contrast checks: primary text/background 14.18:1, muted/background 4.50:1, primary action/white 5.09:1, primary action hover/white 9.96:1, secondary action/white 7.04:1 and accent/white 6.29:1.
-- Repository initialization checks confirmed the dedicated remote was empty before import and the Platform repository was not used or modified.
+## Runtime and visual gates
 
-## Not yet executable in this workspace
+The following remain staging gates and are not source-test passes:
 
-- PHP executable is unavailable, so real `php -l` remains unverified.
-- No isolated WordPress runtime is provisioned, so template rendering, activation, Gutenberg editor parity and plugin interoperability remain unverified.
-- Cloud Browser has a fixed desktop viewport, so exact mobile pixel screenshots remain a staging requirement; production media-rule behaviour was mapped instead.
-- Automated accessibility tooling, screen-reader testing, performance budgets and full Rank Math head regression require staging.
+- WordPress activation, Gutenberg insertion/editor parity and template rendering.
+- Custom-logo rendering and hamburger interaction in an actual browser.
+- Regional selector, local preference persistence and optional IP suggestion in a browser with network controls.
+- 320, 375, 390, 768 and desktop visual/overflow checks.
+- Vazirmatn network/font-load verification and real Persian readability review.
+- Keyboard/focus, reduced-motion, screen-reader, Rank Math head and third-party enrolment isolation checks.
 
-These are explicit release gates, not assumed passes.
+## 0.4.2 asset handoff
+
+The pattern deliberately uses the existing abstract hero artwork as an editable temporary image placeholder in the hero and six instrument tiles. Approved academy imagery is still required for visual sign-off. Replace only the core Image blocks in Gutenberg; no template or URL changes are required.
