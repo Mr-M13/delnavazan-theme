@@ -1,17 +1,32 @@
+@font-face {
+  font-family: "Vazirmatn";
+  src: url("../fonts/Vazirmatn-Variable.woff2") format("woff2-variations");
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+}
+
 body {
   direction: rtl;
   font-family: Vazirmatn, Tahoma, Arial, sans-serif;
-  line-height: 1.85;
+  line-height: 1.8;
+  font-synthesis-weight: none;
 }
 
 .editor-styles-wrapper .dzn-home-section {
-  padding-block: clamp(3rem, 7vw, 6rem);
+  padding-block: clamp(3.25rem, 7vw, 7rem);
+}
+
+.editor-styles-wrapper .dzn-home-section > .alignwide {
+  inline-size: calc(100% - clamp(2.5rem, 8vw, 5rem));
+  max-inline-size: 73.75rem;
+  margin-inline: auto;
 }
 
 .editor-styles-wrapper .dzn-eyebrow {
   color: var(--wp--preset--color--accent);
-  font-size: .8125rem;
-  font-weight: 800;
+  font-size: .875rem;
+  font-weight: 750;
 }
 
 .editor-styles-wrapper .dzn-home-hero,

@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.4.1 — 2026-09-08
+
+- Added a single responsive gutter and containment contract for Theme pages and Gutenberg homepage sections without viewport-width breakouts or blanket homepage clipping.
+- Bundled the Vazirmatn variable webfont under the SIL Open Font License and aligned front-end/editor typography around deliberate 400–900 weights.
+- Corrected the commercial journey so the free introductory session remains separate and term payment precedes the paid 12-lesson term.
+- Improved muted-text contrast, contextual focus visibility, responsive prose, control wrapping and small-screen typography.
+- Scoped form primitives to Theme-owned form roots to avoid leaking presentation into future third-party enrolment interfaces.
+- Refined hero scale, section rhythm, facts, pricing, six-step process, trust artwork and mobile CTA composition.
+- Removed provisional public course copy, the three-month claim and the unsupported 15-course statistic.
+
+
 ## 0.4.0 — 2026-09-07
 
 - Added a complete Gutenberg-native editorial homepage pattern with a static hero, essential facts, course index, pricing ledger, process, trust, article discovery, FAQ and final CTA.

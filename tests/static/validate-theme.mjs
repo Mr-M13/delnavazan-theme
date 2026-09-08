@@ -17,6 +17,8 @@ const requiredFiles = [
   'index.php',
   'assets/css/theme.css',
   'assets/css/editor.css',
+  'assets/fonts/Vazirmatn-Variable.woff2',
+  'assets/fonts/OFL.txt',
   'assets/images/hero-strings.svg',
   'assets/js/navigation.js',
   'inc/patterns.php',
@@ -31,8 +33,8 @@ for (const relative of requiredFiles) {
 }
 
 const style = fs.readFileSync(path.join(theme, 'style.css'), 'utf8');
-if (!/^Version:\s*0\.4\.0$/m.test(style)) {
-  throw new Error('Theme version must be 0.4.0 for this increment.');
+if (!/^Version:\s*0\.4\.1$/m.test(style)) {
+  throw new Error('Theme version must be 0.4.1 for this increment.');
 }
 
 const themeJson = JSON.parse(fs.readFileSync(path.join(theme, 'theme.json'), 'utf8'));
@@ -89,7 +91,27 @@ for (const character of css.replace(/\/\*[\s\S]*?\*\//g, '')) {
 if (braces !== 0) throw new Error(`CSS brace imbalance: ${braces}`);
 
 if (/linear-gradient\s*\(/i.test(css)) {
-  throw new Error('Increment 0.4 must not introduce gratuitous CSS gradients.');
+  throw new Error('Increment 0.4.1 must not introduce CSS gradients.');
+}
+
+if (/(?:100vw|50vw)/i.test(css)) {
+  throw new Error('Viewport-width breakout techniques are prohibited in Increment 0.4.1.');
+}
+
+if (/\.dzn-home\s+\.entry-content\s*\{[^}]*overflow\s*:\s*(?:clip|hidden)/is.test(css)) {
+  throw new Error('Homepage overflow must not be concealed.');
+}
+
+if (!/@font-face[\s\S]*Vazirmatn-Variable\.woff2[\s\S]*font-display:\s*swap/i.test(css)) {
+  throw new Error('Local Vazirmatn loading with font-display: swap is required.');
+}
+
+if (/https?:\/\/[^)'"]+\.(?:woff2?|ttf|otf)/i.test(css)) {
+  throw new Error('External font dependencies are prohibited.');
+}
+
+if (/^\s*(?:input|select|textarea)(?:\s*,|\s*\{)/m.test(css)) {
+  throw new Error('Form primitives must remain scoped to Theme-owned form roots.');
 }
 
 const homepagePattern = fs.readFileSync(path.join(theme, 'patterns/homepage-editorial.php'), 'utf8');
@@ -118,6 +140,21 @@ if ((homepagePattern.match(/<h1\b/gi) ?? []).length !== 1) {
 
 if (/carousel|slider|spopm_PM/i.test(homepagePattern)) {
   throw new Error('Homepage pattern must not inherit slider or legacy payment-shortcode presentation.');
+}
+
+if (/پرداخت پس از نخستین جلسهٔ آموزشی|۳ ماه/.test(homepagePattern)) {
+  throw new Error('Homepage pattern retains obsolete commercial wording.');
+}
+
+for (const requiredCopy of [
+  'هزینهٔ ترم پیش از آغاز ۱۲ جلسهٔ آموزشی پرداخت می‌شود',
+  'جلسهٔ آموزشی ۱ از ۱۲',
+  'یک ترم',
+  '۱۲ جلسهٔ خصوصی',
+]) {
+  if (!homepagePattern.includes(requiredCopy)) {
+    throw new Error(`Homepage pattern is missing canonical commercial copy: ${requiredCopy}`);
+  }
 }
 
 if (/class="wp-block-group dzn-trust__art"\s+aria-hidden=/i.test(homepagePattern)) {

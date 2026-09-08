@@ -2,8 +2,8 @@
 
 Authoritative repository for the Delnavazan whole-site production WordPress theme.
 
-Current development version: **0.4.0**
-Status: **Increment 0.4 candidate; NIU staging only; never production**
+Current development version: **0.4.1**
+Status: **Increment 0.4.1 source candidate; runtime validation pending; never production**
 
 ## Vision
 
@@ -14,7 +14,7 @@ Status: **Increment 0.4 candidate; NIU staging only; never production**
 - Hybrid classic WordPress theme: PHP template hierarchy plus `theme.json`.
 - Existing Gutenberg content renders through `the_content()`.
 - Public Persian documents use `fa-IR` and RTL without changing the WordPress/admin locale.
-- Editorial header, Turquoise & Pomegranate semantic tokens, and minimal dependency-free JavaScript.
+- Editorial header, Turquoise & Pomegranate semantic tokens, a locally bundled Vazirmatn variable webfont, and minimal dependency-free JavaScript.
 - Rank Math retains SEO metadata, canonical, social, schema and sitemap ownership.
 - The theme contains presentation only: no Platform database, workflow, booking, payment, matching, notification or calendar logic.
 - The redesigned homepage is supplied as a Gutenberg core-block pattern; the front-page template continues to render authored content through `the_content()`.
@@ -35,6 +35,10 @@ Status: **Increment 0.4 candidate; NIU staging only; never production**
 ```
 
 `check-theme.sh` performs dependency-free static checks and runs `php -l` when PHP is available. PHP lint and WordPress runtime validation remain mandatory staging gates.
+
+## Font licence
+
+The bundled Vazirmatn font is distributed under the SIL Open Font License 1.1. Its copyright notice and licence are preserved in `theme/assets/fonts/OFL.txt`.
 
 ## Safety boundary
 
