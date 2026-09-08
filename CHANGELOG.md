@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.4.0 — 2026-09-07
+
+- Added a complete Gutenberg-native editorial homepage pattern with a static hero, essential facts, course index, pricing ledger, process, trust, article discovery, FAQ and final CTA.
+- Refined the Editorial Header and institutional footer without changing WordPress menu ownership or URLs.
+- Added a responsive Turquoise & Pomegranate homepage presentation system with no slider, no gradient dependency and minimal card usage.
+- Added a theme-owned decorative hero artwork that uses only semantic palette colours and remains resilient when content media is missing.
+- Improved mobile flow, touch targets, focus behaviour, mixed-direction handling and reduced-motion support.
+- Kept the homepage content-managed, Rank Math-compatible and independent from Platform and Amelia behaviour.
+
 ## 0.2.0 — 2026-09-06
 
 - Mapped representative production pages, content ownership and migration dependencies.

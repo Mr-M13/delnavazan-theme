@@ -17,7 +17,10 @@ const requiredFiles = [
   'index.php',
   'assets/css/theme.css',
   'assets/css/editor.css',
+  'assets/images/hero-strings.svg',
   'assets/js/navigation.js',
+  'inc/patterns.php',
+  'patterns/homepage-editorial.php',
 ];
 
 for (const relative of requiredFiles) {
@@ -28,8 +31,8 @@ for (const relative of requiredFiles) {
 }
 
 const style = fs.readFileSync(path.join(theme, 'style.css'), 'utf8');
-if (!/^Version:\s*0\.2\.0$/m.test(style)) {
-  throw new Error('Theme version must remain 0.2.0 for this foundation.');
+if (!/^Version:\s*0\.4\.0$/m.test(style)) {
+  throw new Error('Theme version must be 0.4.0 for this increment.');
 }
 
 const themeJson = JSON.parse(fs.readFileSync(path.join(theme, 'theme.json'), 'utf8'));
@@ -84,5 +87,45 @@ for (const character of css.replace(/\/\*[\s\S]*?\*\//g, '')) {
   if (braces < 0) throw new Error('CSS closes a block before it opens.');
 }
 if (braces !== 0) throw new Error(`CSS brace imbalance: ${braces}`);
+
+if (/linear-gradient\s*\(/i.test(css)) {
+  throw new Error('Increment 0.4 must not introduce gratuitous CSS gradients.');
+}
+
+const homepagePattern = fs.readFileSync(path.join(theme, 'patterns/homepage-editorial.php'), 'utf8');
+const requiredHomepageSections = [
+  'dzn-home-hero',
+  'dzn-facts',
+  'dzn-home-why',
+  'dzn-courses',
+  'dzn-pricing',
+  'dzn-process',
+  'dzn-trust',
+  'dzn-editorial',
+  'dzn-faq',
+  'dzn-final-cta',
+];
+
+for (const section of requiredHomepageSections) {
+  if (!homepagePattern.includes(section)) {
+    throw new Error(`Homepage pattern is missing section: ${section}`);
+  }
+}
+
+if ((homepagePattern.match(/<h1\b/gi) ?? []).length !== 1) {
+  throw new Error('Homepage pattern must contain exactly one H1.');
+}
+
+if (/carousel|slider|spopm_PM/i.test(homepagePattern)) {
+  throw new Error('Homepage pattern must not inherit slider or legacy payment-shortcode presentation.');
+}
+
+const artwork = fs.readFileSync(path.join(theme, 'assets/images/hero-strings.svg'), 'utf8');
+const artworkColors = new Set([...artwork.matchAll(/#[0-9a-f]{6}/gi)].map(([color]) => color.toLowerCase()));
+for (const color of artworkColors) {
+  if (![...palette.values()].includes(color)) {
+    throw new Error(`Hero artwork uses a colour outside the semantic palette: ${color}`);
+  }
+}
 
 console.log('Static theme validation passed.');
