@@ -10,7 +10,6 @@
 - Refined hero scale, section rhythm, facts, pricing, six-step process, trust artwork and mobile CTA composition.
 - Removed provisional public course copy, the three-month claim and the unsupported 15-course statistic.
 
-
 ## 0.4.0 — 2026-09-07
 
 - Added a complete Gutenberg-native editorial homepage pattern with a static hero, essential facts, course index, pricing ledger, process, trust, article discovery, FAQ and final CTA.
