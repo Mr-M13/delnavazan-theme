@@ -137,7 +137,7 @@
 <section class="wp-block-group alignfull dzn-home-section dzn-trust">
 	<!-- wp:group {"align":"wide","className":"dzn-trust__grid","layout":{"type":"default"}} -->
 	<div class="wp-block-group alignwide dzn-trust__grid">
-		<!-- wp:group {"className":"dzn-trust__art","layout":{"type":"default"}} --><div class="wp-block-group dzn-trust__art" aria-hidden="true"><!-- wp:paragraph --><p>گوش‌دادن</p><!-- /wp:paragraph --><!-- wp:paragraph --><p>تمرین</p><!-- /wp:paragraph --><!-- wp:paragraph --><p>گفت‌وگو</p><!-- /wp:paragraph --></div><!-- /wp:group -->
+		<!-- wp:group {"className":"dzn-trust__art","layout":{"type":"default"}} --><div class="wp-block-group dzn-trust__art"><!-- wp:paragraph --><p>گوش‌دادن</p><!-- /wp:paragraph --><!-- wp:paragraph --><p>تمرین</p><!-- /wp:paragraph --><!-- wp:paragraph --><p>گفت‌وگو</p><!-- /wp:paragraph --></div><!-- /wp:group -->
 		<!-- wp:group {"className":"dzn-section-heading","layout":{"type":"default"}} --><div class="wp-block-group dzn-section-heading"><!-- wp:paragraph {"className":"dzn-eyebrow"} --><p class="dzn-eyebrow">اعتماد انسانی</p><!-- /wp:paragraph --><!-- wp:heading --><h2 class="wp-block-heading">آموزش موسیقی، رابطه‌ای انسانی است</h2><!-- /wp:heading --><!-- wp:paragraph --><p>کیفیت این مسیر فقط به تماس تصویری وابسته نیست؛ شنیدن دقیق، بازخورد روشن و پیوستگی تمرین، کلاس را زنده نگه می‌دهد.</p><!-- /wp:paragraph --><!-- wp:paragraph --><p>جلسهٔ معارفه فرصت می‌دهد پیش از ورود به ترم، با فضای آموزش و ادامهٔ مسیر آشنا شوید.</p><!-- /wp:paragraph --></div><!-- /wp:group -->
 	</div>
 	<!-- /wp:group -->
@@ -146,7 +146,7 @@
 
 <!-- wp:group {"tagName":"section","align":"full","className":"dzn-home-section dzn-editorial","layout":{"type":"constrained"}} -->
 <section class="wp-block-group alignfull dzn-home-section dzn-editorial">
-	<!-- wp:group {"align":"wide","className":"dzn-section-heading dzn-section-heading--row","layout":{"type":"default"}} --><div class="wp-block-group alignwide dzn-section-heading dzn-section-heading--row"><div><!-- wp:paragraph {"className":"dzn-eyebrow"} --><p class="dzn-eyebrow">مجلهٔ دلنوازان</p><!-- /wp:paragraph --><!-- wp:heading --><h2 class="wp-block-heading">برای شنیدن و شناختن</h2><!-- /wp:heading --></div><!-- wp:paragraph {"className":"dzn-inline-link"} --><p class="dzn-inline-link"><a href="<?php echo esc_url( home_url( '/articles/' ) ); ?>">همهٔ مقاله‌ها <span aria-hidden="true">←</span></a></p><!-- /wp:paragraph --></div>
+	<!-- wp:group {"align":"wide","className":"dzn-section-heading dzn-section-heading--row","layout":{"type":"default"}} --><div class="wp-block-group alignwide dzn-section-heading dzn-section-heading--row"><!-- wp:group {"className":"dzn-section-heading__copy","layout":{"type":"default"}} --><div class="wp-block-group dzn-section-heading__copy"><!-- wp:paragraph {"className":"dzn-eyebrow"} --><p class="dzn-eyebrow">مجلهٔ دلنوازان</p><!-- /wp:paragraph --><!-- wp:heading --><h2 class="wp-block-heading">برای شنیدن و شناختن</h2><!-- /wp:heading --></div><!-- /wp:group --><!-- wp:paragraph {"className":"dzn-inline-link"} --><p class="dzn-inline-link"><a href="<?php echo esc_url( home_url( '/articles/' ) ); ?>">همهٔ مقاله‌ها <span aria-hidden="true">←</span></a></p><!-- /wp:paragraph --></div>
 	<!-- /wp:group -->
 
 	<!-- wp:query {"queryId":4,"query":{"perPage":3,"pages":0,"offset":0,"postType":"post","order":"desc","orderBy":"date","author":"","search":"","exclude":[],"sticky":"exclude","inherit":false},"align":"wide","className":"dzn-article-query"} -->

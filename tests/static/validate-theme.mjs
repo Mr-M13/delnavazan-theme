@@ -120,6 +120,14 @@ if (/carousel|slider|spopm_PM/i.test(homepagePattern)) {
   throw new Error('Homepage pattern must not inherit slider or legacy payment-shortcode presentation.');
 }
 
+if (/class="wp-block-group dzn-trust__art"\s+aria-hidden=/i.test(homepagePattern)) {
+  throw new Error('Core Group output must not carry an unsupported aria-hidden attribute.');
+}
+
+if (!homepagePattern.includes('<!-- wp:group {"className":"dzn-section-heading__copy"')) {
+  throw new Error('The editorial heading row must use a registered inner Group block, not raw wrapper markup.');
+}
+
 const artwork = fs.readFileSync(path.join(theme, 'assets/images/hero-strings.svg'), 'utf8');
 const artworkColors = new Set([...artwork.matchAll(/#[0-9a-f]{6}/gi)].map(([color]) => color.toLowerCase()));
 for (const color of artworkColors) {
