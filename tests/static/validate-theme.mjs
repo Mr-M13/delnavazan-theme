@@ -83,7 +83,8 @@ for (const price of ['A$250', 'NZ$250', 'US$250', 'C$250', '€150', '£150']) i
 for (const code of ["'AU' => 'AU'", "'NZ' => 'NZ'", "'US' => 'US'", "'CA' => 'CA'", "'GB' => 'GB'", "'DE' => 'EU'", "'LT' => 'EU'"]) if (!pricing.includes(code)) throw new Error('Missing country mapping: ' + code);
 if (/AED|KWD|TRY/.test(pricing)) throw new Error('Inactive pricing regions must not be exposed.');
 const pricingJs = fs.readFileSync(path.join(theme, 'assets/js/pricing-region.js'), 'utf8');
-for (const required of ['localStorage', "credentials: 'omit'", 'ipwho.is', 'countryToRegion', 'manuallySelected', 'showNeutral']) if (!pricingJs.includes(required)) throw new Error('Pricing UI is missing: ' + required);
+if (!pricing.includes('ipwho.is')) throw new Error('Pricing presentation config must declare the isolated suggestion endpoint.');
+for (const required of ['localStorage', "credentials: 'omit'", 'countryToRegion', 'manuallySelected', 'showNeutral']) if (!pricingJs.includes(required)) throw new Error('Pricing UI is missing: ' + required);
 if (/default(?:ed)?\s*(?:to|=)\s*['"]?US/i.test(pricingJs)) throw new Error('Unsupported location must not silently default to United States.');
 
 console.log('Static theme validation passed.');
