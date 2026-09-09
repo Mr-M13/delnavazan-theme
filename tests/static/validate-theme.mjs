@@ -20,7 +20,7 @@ for (const relative of requiredFiles) {
 }
 
 const style = fs.readFileSync(path.join(theme, 'style.css'), 'utf8');
-if (!/^Version:\s*0\.4\.2$/m.test(style)) throw new Error('Theme version must be 0.4.2 for this increment.');
+if (!/^Version:\s*0\.4\.3$/m.test(style)) throw new Error('Theme version must be 0.4.3 for this increment.');
 
 const themeJson = JSON.parse(fs.readFileSync(path.join(theme, 'theme.json'), 'utf8'));
 const palette = new Map(themeJson.settings.color.palette.map(({ slug, color }) => [slug, color.toLowerCase()]));
@@ -62,19 +62,34 @@ const pattern = fs.readFileSync(path.join(theme, 'patterns/homepage-editorial.ph
 const sections = ['dzn-home-hero', 'dzn-facts', 'dzn-courses', 'dzn-process', 'dzn-pricing', 'dzn-faq', 'dzn-contact', 'dzn-editorial'];
 for (const section of sections) if (!pattern.includes(section)) throw new Error('Homepage pattern is missing section: ' + section);
 if (pattern.includes('dzn-trust') || pattern.includes('dzn-course-index') || pattern.includes('wp:post-date')) throw new Error('Homepage retains removed trust, course-index, or article-date presentation.');
+if (pattern.includes('hero-strings.svg') || pattern.includes('dzn-instrument-tile__media')) throw new Error('Homepage must not use the Delnavazan logo as hero or instrument artwork.');
+if (!pattern.includes('data-dzn-owned-media-slot="hero"')) throw new Error('Homepage requires a replaceable owned-imagery hero slot.');
+if (css.includes('.dzn-trust')) throw new Error('Obsolete standalone trust-section CSS must be removed.');
 const positions = sections.map((section) => pattern.indexOf(section));
 for (let index = 1; index < positions.length; index += 1) if (positions[index] <= positions[index - 1]) throw new Error('Homepage narrative order is invalid.');
 if ((pattern.match(/<h1\b/gi) ?? []).length !== 1) throw new Error('Homepage pattern must contain exactly one H1.');
 if (/carousel|slider|spopm_PM/i.test(pattern)) throw new Error('Homepage pattern must not inherit slider or legacy payment-shortcode presentation.');
-if (/پرداخت پس از نخستین جلسهٔ آموزشی|۳ ماه/.test(pattern)) throw new Error('Homepage pattern retains obsolete commercial wording.');
-for (const copy of ['هزینهٔ ترم پیش از آغاز ۱۲ جلسهٔ آموزشی پرداخت می‌شود', 'جلسهٔ آموزشی ۱ از ۱۲', 'یک ترم', '۱۲ جلسهٔ خصوصی']) if (!pattern.includes(copy)) throw new Error('Homepage is missing canonical commercial copy: ' + copy);
+if (/پرداخت پس از نخستین جلسهٔ آموزشی|۳ ماه|سه ماه|3 months/i.test(pattern)) throw new Error('Homepage pattern retains obsolete commercial wording.');
+for (const copy of ['هر ترم پرداخت‌شده: ۱۲ جلسهٔ خصوصی، هفته‌ای یک جلسهٔ ۳۰ دقیقه‌ای. جلسهٔ معارفه رایگان و جدا از ترم است.', 'هزینهٔ ترم پیش از آغاز ۱۲ جلسهٔ آموزشی پرداخت می‌شود', 'آغاز ترم پرداخت‌شدهٔ ۱۲ جلسه‌ای']) if (!pattern.includes(copy)) throw new Error('Homepage is missing canonical commercial copy: ' + copy);
+const processSection = pattern.slice(pattern.indexOf('dzn-process'), pattern.indexOf('dzn-pricing'));
+if ((processSection.match(/<li>/g) ?? []).length !== 4) throw new Error('How It Works must contain exactly four conceptual steps.');
+for (const step of ['ثبت‌نام / درخواست', 'جلسهٔ معارفهٔ رایگان', 'تصمیم برای ادامه و پرداخت هزینهٔ ترم', 'آغاز ترم پرداخت‌شدهٔ ۱۲ جلسه‌ای']) if (!processSection.includes(step)) throw new Error('How It Works is missing: ' + step);
+if (pattern.includes('dzn-price-ledger__row') || pattern.includes('dzn-price-ledger__note')) throw new Error('Pricing must not repeat commercial mechanics.');
 for (const faq of ['کلاس‌ها برای چه کشورهایی برگزار می‌شود؟', 'اگر هنوز ساز ندارم چه کنم؟', 'آیا می‌توانم از سطح کاملاً مبتدی شروع کنم؟', 'اگر زمان یک جلسه مناسب نباشد چه می‌شود؟', 'هزینهٔ ترم چه زمانی پرداخت می‌شود؟', 'آیا داخل ایران هم می‌توان ثبت‌نام کرد؟']) if (!pattern.includes(faq)) throw new Error('Approved FAQ is missing: ' + faq);
 if (!pattern.includes('0413 413 004') || !pattern.includes('delnavazan@mail.com') || !pattern.includes('@insta.delnavazan')) throw new Error('Homepage contact routes are incomplete.');
-if (pattern.includes('+61 431 364 200')) throw new Error('Notification number must not appear on the homepage.');
+for (const file of walk(theme)) {
+  if (fs.readFileSync(file, 'utf8').includes('+61 431 364 200')) throw new Error('Notification number must not appear in public Theme source: ' + path.relative(root, file));
+  if (/\b(?:3 months|سه ماه)\b/i.test(fs.readFileSync(file, 'utf8'))) throw new Error('Theme must not present a three-month canonical term: ' + path.relative(root, file));
+}
 
 const header = fs.readFileSync(path.join(theme, 'header.php'), 'utf8');
 if (!header.includes('<svg class="menu-toggle__icon"') || (header.match(/menu-toggle__line--/g) ?? []).length !== 3) throw new Error('Header must use the controlled three-stroke SVG hamburger.');
 if (header.includes('site-branding__description')) throw new Error('Header must not render a redundant tagline.');
+if (!header.includes('has_custom_logo()')) throw new Error('Header must retain Custom Logo as the primary identity.');
+const setup = fs.readFileSync(path.join(theme, 'inc/setup.php'), 'utf8');
+if (!setup.includes('dzn-nav-anchor') || !setup.includes('dzn-nav-page')) throw new Error('Primary menu must distinguish same-page anchors from page links.');
+for (const selector of ['a.dzn-nav-anchor', 'a.dzn-nav-page:not(.dzn-nav-action)', 'a:focus-visible', 'a.dzn-nav-action']) if (!css.includes(selector)) throw new Error('Navigation state treatment is incomplete: ' + selector);
+if (!css.includes('clamp(1.9rem, 1.72rem + 1.8vw, 4.35rem)')) throw new Error('Homepage H1 reduction is missing.');
 const footer = fs.readFileSync(path.join(theme, 'footer.php'), 'utf8');
 if (!footer.includes('has_custom_logo()') || !footer.includes('0413 413 004') || footer.includes('+61 431 364 200')) throw new Error('Footer logo/contact contract failed.');
 
