@@ -20,7 +20,7 @@ for (const relative of requiredFiles) {
 }
 
 const style = fs.readFileSync(path.join(theme, 'style.css'), 'utf8');
-if (!/^Version:\s*0\.4\.3$/m.test(style)) throw new Error('Theme version must be 0.4.3 for this increment.');
+if (!/^Version:\s*0\.4\.4$/m.test(style)) throw new Error('Theme version must be 0.4.4 for this increment.');
 
 const themeJson = JSON.parse(fs.readFileSync(path.join(theme, 'theme.json'), 'utf8'));
 const palette = new Map(themeJson.settings.color.palette.map(({ slug, color }) => [slug, color.toLowerCase()]));
@@ -90,6 +90,11 @@ const setup = fs.readFileSync(path.join(theme, 'inc/setup.php'), 'utf8');
 if (!setup.includes('dzn-nav-anchor') || !setup.includes('dzn-nav-page')) throw new Error('Primary menu must distinguish same-page anchors from page links.');
 for (const selector of ['a.dzn-nav-anchor', 'a.dzn-nav-page:not(.dzn-nav-action)', 'a:focus-visible', 'a.dzn-nav-action']) if (!css.includes(selector)) throw new Error('Navigation state treatment is incomplete: ' + selector);
 if (!css.includes('clamp(1.9rem, 1.72rem + 1.8vw, 4.35rem)')) throw new Error('Homepage H1 reduction is missing.');
+for (const correction of [
+  '.dzn-home-hero:has(.dzn-home-hero__media--slot:empty)',
+  '.current-menu-item > a.dzn-nav-anchor:not(.dzn-nav-action)',
+  '.site-footer :where(a, a:visited)',
+]) if (!css.includes(correction)) throw new Error('Runtime visual correction is missing: ' + correction);
 const footer = fs.readFileSync(path.join(theme, 'footer.php'), 'utf8');
 if (!footer.includes('has_custom_logo()') || !footer.includes('0413 413 004') || footer.includes('+61 431 364 200')) throw new Error('Footer logo/contact contract failed.');
 
