@@ -4,6 +4,8 @@ set -eu
 repo_dir=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 theme_dir="$repo_dir/theme"
 
+sh -n "$repo_dir/scripts/check-theme.sh"
+sh -n "$repo_dir/scripts/build-package.sh"
 node "$repo_dir/tests/static/validate-theme.mjs"
 node --check "$theme_dir/assets/js/navigation.js"
 node --check "$theme_dir/assets/js/pricing-region.js"

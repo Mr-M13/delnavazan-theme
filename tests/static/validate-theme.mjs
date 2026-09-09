@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { createHash } from 'node:crypto';
 
 const root = path.resolve(import.meta.dirname, '../..');
 const theme = path.join(root, 'theme');
@@ -9,7 +10,7 @@ const requiredFiles = [
   'front-page.php', 'page.php', 'single.php', 'index.php',
   'assets/css/theme.css', 'assets/css/editor.css',
   'assets/fonts/Vazirmatn-Variable.woff2', 'assets/fonts/OFL.txt',
-  'assets/images/hero-strings.svg', 'assets/js/navigation.js',
+  'assets/js/navigation.js',
   'assets/js/pricing-region.js', 'inc/patterns.php', 'inc/pricing.php',
   'patterns/homepage-editorial.php',
 ];
@@ -20,7 +21,7 @@ for (const relative of requiredFiles) {
 }
 
 const style = fs.readFileSync(path.join(theme, 'style.css'), 'utf8');
-if (!/^Version:\s*0\.4\.4$/m.test(style)) throw new Error('Theme version must be 0.4.4 for this increment.');
+if (!/^Version:\s*0\.4\.5$/m.test(style)) throw new Error('Theme version must be 0.4.5 for this increment.');
 
 const themeJson = JSON.parse(fs.readFileSync(path.join(theme, 'theme.json'), 'utf8'));
 const palette = new Map(themeJson.settings.color.palette.map(({ slug, color }) => [slug, color.toLowerCase()]));
@@ -51,7 +52,8 @@ for (const character of css.replace(/\/\*[\s\S]*?\*\//g, '')) {
   if (braces < 0) throw new Error('CSS closes a block before it opens.');
 }
 if (braces !== 0) throw new Error('CSS brace imbalance: ' + braces);
-if (/linear-gradient\s*\(/i.test(css)) throw new Error('Theme must not introduce gradients.');
+const gradients = css.match(/linear-gradient\s*\(/gi) ?? [];
+if (gradients.length !== 2 || /(?:radial|repeating)-(?:linear-)?gradient\s*\(/i.test(css)) throw new Error('Only the two restrained hero ivory fades are permitted.');
 if (/(?:100vw|50vw)/i.test(css)) throw new Error('Viewport-width breakout techniques are prohibited.');
 if (/\.dzn-home\s+\.entry-content\s*\{[^}]*overflow\s*:\s*(?:clip|hidden)/is.test(css)) throw new Error('Homepage overflow must not be concealed.');
 if (!/@font-face[\s\S]*Vazirmatn-Variable\.woff2[\s\S]*font-display:\s*swap/i.test(css)) throw new Error('Local Vazirmatn loading with font-display: swap is required.');
@@ -59,11 +61,12 @@ if (/https?:\/\/[^)'"]+\.(?:woff2?|ttf|otf)/i.test(css)) throw new Error('Extern
 if (/^\s*(?:input|select|textarea)(?:\s*,|\s*\{)/m.test(css)) throw new Error('Form primitives must remain scoped to Theme-owned form roots.');
 
 const pattern = fs.readFileSync(path.join(theme, 'patterns/homepage-editorial.php'), 'utf8');
-const sections = ['dzn-home-hero', 'dzn-facts', 'dzn-courses', 'dzn-process', 'dzn-pricing', 'dzn-faq', 'dzn-contact', 'dzn-editorial'];
+const sections = ['dzn-home-hero', 'dzn-facts', 'dzn-courses', 'dzn-process', 'dzn-pricing', 'dzn-hamnavaz', 'dzn-faq', 'dzn-contact', 'dzn-editorial'];
 for (const section of sections) if (!pattern.includes(section)) throw new Error('Homepage pattern is missing section: ' + section);
 if (pattern.includes('dzn-trust') || pattern.includes('dzn-course-index') || pattern.includes('wp:post-date')) throw new Error('Homepage retains removed trust, course-index, or article-date presentation.');
-if (pattern.includes('hero-strings.svg') || pattern.includes('dzn-instrument-tile__media')) throw new Error('Homepage must not use the Delnavazan logo as hero or instrument artwork.');
-if (!pattern.includes('data-dzn-owned-media-slot="hero"')) throw new Error('Homepage requires a replaceable owned-imagery hero slot.');
+if (pattern.includes('hero-strings.svg')) throw new Error('Homepage must not use the Delnavazan logo as hero artwork.');
+for (const slot of ['dzn-owned-media-slot--hero', 'dzn-instrument-tile__media', 'dzn-owned-media-slot--hamnavaz']) if (!pattern.includes(slot)) throw new Error('Homepage is missing replaceable media architecture: ' + slot);
+if (/class="[^"]*dzn-owned-media-slot[^"]*"[^>]*aria-hidden/i.test(pattern)) throw new Error('Reusable media containers must not hide future meaningful media from assistive technology.');
 if (css.includes('.dzn-trust')) throw new Error('Obsolete standalone trust-section CSS must be removed.');
 const positions = sections.map((section) => pattern.indexOf(section));
 for (let index = 1; index < positions.length; index += 1) if (positions[index] <= positions[index - 1]) throw new Error('Homepage narrative order is invalid.');
@@ -75,12 +78,46 @@ const processSection = pattern.slice(pattern.indexOf('dzn-process'), pattern.ind
 if ((processSection.match(/<li>/g) ?? []).length !== 4) throw new Error('How It Works must contain exactly four conceptual steps.');
 for (const step of ['ثبت‌نام / درخواست', 'جلسهٔ معارفهٔ رایگان', 'تصمیم برای ادامه و پرداخت هزینهٔ ترم', 'آغاز ترم پرداخت‌شدهٔ ۱۲ جلسه‌ای']) if (!processSection.includes(step)) throw new Error('How It Works is missing: ' + step);
 if (pattern.includes('dzn-price-ledger__row') || pattern.includes('dzn-price-ledger__note')) throw new Error('Pricing must not repeat commercial mechanics.');
+const folioSection = pattern.slice(pattern.indexOf('dzn-instrument-folio'), pattern.indexOf('dzn-process'));
+const instruments = new Set([...folioSection.matchAll(/dzn-instrument-tile--([a-z]+)/g)].map(([, instrument]) => instrument));
+if (instruments.size < 6 || instruments.size > 8) throw new Error('Instrument folio must contain 6–8 unique featured candidates.');
+if (/<a\b/i.test(folioSection)) throw new Error('Instrument folio must not invent course or catalog URLs.');
+const hamnavazSection = pattern.slice(pattern.indexOf('dzn-hamnavaz'), pattern.indexOf('dzn-faq'));
+if (!hamnavazSection.includes('<h2') || /<(?:a|button)\b/i.test(hamnavazSection)) throw new Error('Hamnavaz must be structurally present, claim-neutral, and secondary to enrolment.');
+const faqSection = pattern.slice(pattern.indexOf('dzn-faq'), pattern.indexOf('dzn-contact'));
+if ((faqSection.match(/<details\b/g) ?? []).length !== 6) throw new Error('Homepage FAQ must contain exactly six native disclosures.');
 for (const faq of ['کلاس‌ها برای چه کشورهایی برگزار می‌شود؟', 'اگر هنوز ساز ندارم چه کنم؟', 'آیا می‌توانم از سطح کاملاً مبتدی شروع کنم؟', 'اگر زمان یک جلسه مناسب نباشد چه می‌شود؟', 'هزینهٔ ترم چه زمانی پرداخت می‌شود؟', 'آیا داخل ایران هم می‌توان ثبت‌نام کرد؟']) if (!pattern.includes(faq)) throw new Error('Approved FAQ is missing: ' + faq);
 if (!pattern.includes('0413 413 004') || !pattern.includes('delnavazan@mail.com') || !pattern.includes('@insta.delnavazan')) throw new Error('Homepage contact routes are incomplete.');
+const publicTextExtensions = new Set(['.php', '.css', '.js', '.json', '.svg', '.txt', '.md']);
+const notificationNumber = /(?:\+?61[\s().-]*431[\s.-]*364[\s.-]*200|0431[\s.-]*364[\s.-]*200)/;
+const threeMonths = /(?:3\s*months|۳[\s\u200c]*ماه|سه[\s\u200c]+ماه)/iu;
 for (const file of walk(theme)) {
-  if (fs.readFileSync(file, 'utf8').includes('+61 431 364 200')) throw new Error('Notification number must not appear in public Theme source: ' + path.relative(root, file));
-  if (/\b(?:3 months|سه ماه)\b/i.test(fs.readFileSync(file, 'utf8'))) throw new Error('Theme must not present a three-month canonical term: ' + path.relative(root, file));
+  if (!publicTextExtensions.has(path.extname(file))) continue;
+  const source = fs.readFileSync(file, 'utf8');
+  if (notificationNumber.test(source)) throw new Error('Notification number must not appear in public Theme source: ' + path.relative(root, file));
+  if (threeMonths.test(source)) throw new Error('Theme must not present a three-month canonical term: ' + path.relative(root, file));
+  if (source.includes('hero-strings.svg')) throw new Error('Retired hero artwork must be wholly unreferenced: ' + path.relative(root, file));
 }
+
+const blockMarkers = pattern.match(/<!--\s*\/?wp:/g) ?? [];
+const blockPattern = /<!--\s*(\/?)wp:([a-z0-9-]+(?:\/[a-z0-9-]+)?)([\s\S]*?)-->/gi;
+const stack = [];
+let parsedMarkers = 0;
+for (const match of pattern.matchAll(blockPattern)) {
+  parsedMarkers += 1;
+  const [, closing, name, payload] = match;
+  const trimmed = payload.trim();
+  const selfClosing = !closing && trimmed.endsWith('/');
+  const attributes = selfClosing ? trimmed.slice(0, -1).trim() : trimmed;
+  if (attributes) JSON.parse(attributes);
+  if (closing) {
+    const opened = stack.pop();
+    if (opened !== name) throw new Error(`Gutenberg block nesting mismatch: expected ${opened ?? 'none'}, closed ${name}.`);
+  } else if (!selfClosing) {
+    stack.push(name);
+  }
+}
+if (parsedMarkers !== blockMarkers.length || stack.length !== 0) throw new Error('Homepage Gutenberg block comments are incomplete or unbalanced.');
 
 const header = fs.readFileSync(path.join(theme, 'header.php'), 'utf8');
 if (!header.includes('<svg class="menu-toggle__icon"') || (header.match(/menu-toggle__line--/g) ?? []).length !== 3) throw new Error('Header must use the controlled three-stroke SVG hamburger.');
@@ -90,19 +127,33 @@ const setup = fs.readFileSync(path.join(theme, 'inc/setup.php'), 'utf8');
 if (!setup.includes('dzn-nav-anchor') || !setup.includes('dzn-nav-page')) throw new Error('Primary menu must distinguish same-page anchors from page links.');
 for (const selector of ['a.dzn-nav-anchor', 'a.dzn-nav-page:not(.dzn-nav-action)', 'a:focus-visible', 'a.dzn-nav-action']) if (!css.includes(selector)) throw new Error('Navigation state treatment is incomplete: ' + selector);
 if (!css.includes('clamp(1.9rem, 1.72rem + 1.8vw, 4.35rem)')) throw new Error('Homepage H1 reduction is missing.');
-for (const correction of [
-  '.dzn-home-hero:has(.dzn-home-hero__media--slot:empty)',
+for (const architecture of [
+  '.dzn-home-hero__media {',
+  'order: 1;',
+  'grid-template-columns: minmax(0, .82fr) minmax(0, 1.18fr)',
+  'grid-template-columns: repeat(2, minmax(0, 1fr))',
+  'grid-template-columns: repeat(4, minmax(0, 1fr))',
+  '@media (max-width: 23.375rem)',
+  '@media (prefers-reduced-motion: reduce)',
+  'scroll-behavior: auto',
   '.current-menu-item > a.dzn-nav-anchor:not(.dzn-nav-action)',
   '.site-footer :where(a, a:visited)',
-]) if (!css.includes(correction)) throw new Error('Runtime visual correction is missing: ' + correction);
+]) if (!css.includes(architecture)) throw new Error('Responsive/accessibility architecture is missing: ' + architecture);
 const footer = fs.readFileSync(path.join(theme, 'footer.php'), 'utf8');
 if (!footer.includes('has_custom_logo()') || !footer.includes('0413 413 004') || footer.includes('+61 431 364 200')) throw new Error('Footer logo/contact contract failed.');
+const frontPage = fs.readFileSync(path.join(theme, 'front-page.php'), 'utf8');
+if (!frontPage.includes('the_content()') || frontPage.indexOf('the_content()') > frontPage.indexOf('get_footer()')) throw new Error('Front page must preserve authored Gutenberg content before the Theme footer.');
+if (!setup.includes(`lang="fa-IR" dir="rtl"`)) throw new Error('Public Persian language and RTL semantics are missing.');
+if (!pattern.includes('<bdi dir="ltr">0413 413 004</bdi>') || !pattern.includes('<bdi dir="ltr">delnavazan@mail.com</bdi>')) throw new Error('Public LTR contact fragments must remain isolated.');
 
 const pricing = fs.readFileSync(path.join(theme, 'inc/pricing.php'), 'utf8');
 for (const price of ['A$250', 'NZ$250', 'US$250', 'C$250', '€150', '£150']) if (!pricing.includes(price)) throw new Error('Missing active regional price: ' + price);
 for (const code of ["'AU' => 'AU'", "'NZ' => 'NZ'", "'US' => 'US'", "'CA' => 'CA'", "'GB' => 'GB'", "'DE' => 'EU'", "'LT' => 'EU'"]) if (!pricing.includes(code)) throw new Error('Missing country mapping: ' + code);
 if (/AED|KWD|TRY/.test(pricing)) throw new Error('Inactive pricing regions must not be exposed.');
 const pricingJs = fs.readFileSync(path.join(theme, 'assets/js/pricing-region.js'), 'utf8');
+const sha256 = (source) => createHash('sha256').update(source).digest('hex');
+if (sha256(pricing) !== '9ffe5937dc9087025b865b2dd106bc1a7c4d75eade09e6099a930c9eef97f844') throw new Error('Pricing presentation configuration changed outside scope.');
+if (sha256(pricingJs) !== '708d74528350f940d6a4c543f075555a4b2c8f528dbaf7831f04352f900d1a42') throw new Error('Pricing-region behavior changed outside scope.');
 if (!pricing.includes('ipwho.is')) throw new Error('Pricing presentation config must declare the isolated suggestion endpoint.');
 for (const required of ['localStorage', "credentials: 'omit'", 'countryToRegion', 'manuallySelected', 'showNeutral']) if (!pricingJs.includes(required)) throw new Error('Pricing UI is missing: ' + required);
 if (/default(?:ed)?\s*(?:to|=)\s*['"]?US/i.test(pricingJs)) throw new Error('Unsupported location must not silently default to United States.');

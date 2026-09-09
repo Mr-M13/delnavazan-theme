@@ -14,33 +14,21 @@
 	<div class="wp-block-group alignwide dzn-home-hero__grid">
 		<!-- wp:group {"className":"dzn-home-hero__copy","layout":{"type":"default"}} -->
 		<div class="wp-block-group dzn-home-hero__copy">
-			<!-- wp:paragraph {"className":"dzn-eyebrow"} -->
-			<p class="dzn-eyebrow">آکادمی آنلاین موسیقی ایرانی</p>
-			<!-- /wp:paragraph -->
-			<!-- wp:heading {"level":1,"className":"dzn-home-hero__title"} -->
-			<h1 class="wp-block-heading dzn-home-hero__title">موسیقی ایرانی؛<br>نزدیک‌تر از همیشه</h1>
-			<!-- /wp:heading -->
-			<!-- wp:paragraph {"className":"dzn-home-hero__lead"} -->
-			<p class="dzn-home-hero__lead">دلنوازان، مسیر یادگیری آنلاین ساز و آواز ایرانی برای فارسی‌زبانانِ خارج از ایران است؛ با آموزش زنده، برنامه‌ای روشن و همراهی انسانی در آغاز راه.</p>
-			<!-- /wp:paragraph -->
+			<!-- wp:paragraph {"className":"dzn-eyebrow"} --><p class="dzn-eyebrow">آکادمی آنلاین موسیقی ایرانی</p><!-- /wp:paragraph -->
+			<!-- wp:heading {"level":1,"className":"dzn-home-hero__title"} --><h1 class="wp-block-heading dzn-home-hero__title">موسیقی ایرانی؛<br>نزدیک‌تر از همیشه</h1><!-- /wp:heading -->
+			<!-- wp:paragraph {"className":"dzn-home-hero__lead"} --><p class="dzn-home-hero__lead">دلنوازان، مسیر یادگیری آنلاین ساز و آواز ایرانی برای فارسی‌زبانانِ خارج از ایران است؛ با آموزش زنده، برنامه‌ای روشن و همراهی انسانی در آغاز راه.</p><!-- /wp:paragraph -->
 			<!-- wp:buttons {"className":"dzn-home-hero__actions"} -->
 			<div class="wp-block-buttons dzn-home-hero__actions">
-				<!-- wp:button -->
-				<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="<?php echo esc_url( home_url( '/enrol/' ) ); ?>">شروع ثبت‌نام</a></div>
-				<!-- /wp:button -->
-				<!-- wp:button {"className":"is-style-outline"} -->
-				<div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="#courses">دیدن سازها</a></div>
-				<!-- /wp:button -->
+				<!-- wp:button --><div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="<?php echo esc_url( home_url( '/enrol/' ) ); ?>">شروع ثبت‌نام</a></div><!-- /wp:button -->
+				<!-- wp:button {"className":"is-style-outline"} --><div class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="#courses">دیدن سازها</a></div><!-- /wp:button -->
 			</div>
 			<!-- /wp:buttons -->
-			<!-- wp:paragraph {"className":"dzn-home-hero__note"} -->
-			<p class="dzn-home-hero__note">آغاز مسیر با جلسهٔ معارفهٔ رایگان</p>
-			<!-- /wp:paragraph -->
+			<!-- wp:paragraph {"className":"dzn-home-hero__note"} --><p class="dzn-home-hero__note">آغاز مسیر با جلسهٔ معارفهٔ رایگان</p><!-- /wp:paragraph -->
 		</div>
 		<!-- /wp:group -->
-		<!-- Owned Academy imagery slot: replace with approved Gutenberg media when available. Do not reuse the Delnavazan logo as hero artwork. -->
-		<!-- wp:group {"className":"dzn-home-hero__media dzn-home-hero__media--slot","layout":{"type":"default"}} -->
-		<div class="wp-block-group dzn-home-hero__media dzn-home-hero__media--slot" data-dzn-owned-media-slot="hero" aria-hidden="true"></div>
+		<!-- Replace only this stable group with approved responsive Academy media. Keep HTML copy outside the media. -->
+		<!-- wp:group {"className":"dzn-home-hero__media dzn-owned-media-slot dzn-owned-media-slot--hero dzn-owned-media-slot--pending","layout":{"type":"default"}} -->
+		<div class="wp-block-group dzn-home-hero__media dzn-owned-media-slot dzn-owned-media-slot--hero dzn-owned-media-slot--pending"></div>
 		<!-- /wp:group -->
 	</div>
 	<!-- /wp:group -->
@@ -49,9 +37,7 @@
 
 <!-- wp:group {"tagName":"section","align":"full","className":"dzn-home-section dzn-facts","layout":{"type":"constrained"}} -->
 <section class="wp-block-group alignfull dzn-home-section dzn-facts" aria-label="اطلاعات اصلی دوره‌ها">
-		<!-- wp:group {"align":"wide","className":"dzn-facts__summary","layout":{"type":"default"}} -->
-		<div class="wp-block-group alignwide dzn-facts__summary"><!-- wp:paragraph --><p>هر ترم پرداخت‌شده: ۱۲ جلسهٔ خصوصی، هفته‌ای یک جلسهٔ ۳۰ دقیقه‌ای. جلسهٔ معارفه رایگان و جدا از ترم است.</p><!-- /wp:paragraph --></div>
-		<!-- /wp:group -->
+	<!-- wp:group {"align":"wide","className":"dzn-facts__summary","layout":{"type":"default"}} --><div class="wp-block-group alignwide dzn-facts__summary"><!-- wp:paragraph --><p>هر ترم پرداخت‌شده: ۱۲ جلسهٔ خصوصی، هفته‌ای یک جلسهٔ ۳۰ دقیقه‌ای. جلسهٔ معارفه رایگان و جدا از ترم است.</p><!-- /wp:paragraph --></div><!-- /wp:group -->
 </section>
 <!-- /wp:group -->
 
@@ -61,15 +47,17 @@
 	<div class="wp-block-group alignwide dzn-section-heading dzn-section-heading--folio"><!-- wp:paragraph {"className":"dzn-eyebrow"} --><p class="dzn-eyebrow">سازها و دوره‌ها</p><!-- /wp:paragraph --><!-- wp:heading --><h2 class="wp-block-heading">سازِ خودتان را پیدا کنید</h2><!-- /wp:heading --><!-- wp:paragraph --><p>این انتخاب، آغاز گفت‌وگو دربارهٔ مسیر آموزشی مناسب شماست. تصویرهای این بخش در نسخهٔ نهایی با رسانه‌های اصیل دلنوازان جایگزین می‌شوند.</p><!-- /wp:paragraph --></div>
 	<!-- /wp:group -->
 	<!-- wp:group {"align":"wide","className":"dzn-instrument-folio","layout":{"type":"default"}} -->
-		<div class="wp-block-group alignwide dzn-instrument-folio">
-			<!-- Approved Academy imagery may later be inserted into these stable course items. No course URL is implied by this presentation. -->
-			<!-- wp:group {"tagName":"article","className":"dzn-instrument-tile dzn-instrument-tile--tar","layout":{"type":"default"}} --><article class="wp-block-group dzn-instrument-tile dzn-instrument-tile--tar" data-dzn-instrument="tar"><!-- wp:group {"className":"dzn-instrument-tile__copy","layout":{"type":"default"}} --><div class="wp-block-group dzn-instrument-tile__copy"><!-- wp:heading {"level":3} --><h3 class="wp-block-heading">تار</h3><!-- /wp:heading --><!-- wp:paragraph --><p>انتخاب در ثبت‌نام اولیه</p><!-- /wp:paragraph --></div><!-- /wp:group --></article><!-- /wp:group -->
-			<!-- wp:group {"tagName":"article","className":"dzn-instrument-tile dzn-instrument-tile--setar","layout":{"type":"default"}} --><article class="wp-block-group dzn-instrument-tile dzn-instrument-tile--setar" data-dzn-instrument="setar"><!-- wp:group {"className":"dzn-instrument-tile__copy","layout":{"type":"default"}} --><div class="wp-block-group dzn-instrument-tile__copy"><!-- wp:heading {"level":3} --><h3 class="wp-block-heading">سه‌تار</h3><!-- /wp:heading --><!-- wp:paragraph --><p>انتخاب در ثبت‌نام اولیه</p><!-- /wp:paragraph --></div><!-- /wp:group --></article><!-- /wp:group -->
-			<!-- wp:group {"tagName":"article","className":"dzn-instrument-tile dzn-instrument-tile--santur","layout":{"type":"default"}} --><article class="wp-block-group dzn-instrument-tile dzn-instrument-tile--santur" data-dzn-instrument="santur"><!-- wp:group {"className":"dzn-instrument-tile__copy","layout":{"type":"default"}} --><div class="wp-block-group dzn-instrument-tile__copy"><!-- wp:heading {"level":3} --><h3 class="wp-block-heading">سنتور</h3><!-- /wp:heading --><!-- wp:paragraph --><p>انتخاب در ثبت‌نام اولیه</p><!-- /wp:paragraph --></div><!-- /wp:group --></article><!-- /wp:group -->
-			<!-- wp:group {"tagName":"article","className":"dzn-instrument-tile dzn-instrument-tile--kamancheh","layout":{"type":"default"}} --><article class="wp-block-group dzn-instrument-tile dzn-instrument-tile--kamancheh" data-dzn-instrument="kamancheh"><!-- wp:group {"className":"dzn-instrument-tile__copy","layout":{"type":"default"}} --><div class="wp-block-group dzn-instrument-tile__copy"><!-- wp:heading {"level":3} --><h3 class="wp-block-heading">کمانچه</h3><!-- /wp:heading --><!-- wp:paragraph --><p>انتخاب در ثبت‌نام اولیه</p><!-- /wp:paragraph --></div><!-- /wp:group --></article><!-- /wp:group -->
-			<!-- wp:group {"tagName":"article","className":"dzn-instrument-tile dzn-instrument-tile--ney","layout":{"type":"default"}} --><article class="wp-block-group dzn-instrument-tile dzn-instrument-tile--ney" data-dzn-instrument="ney"><!-- wp:group {"className":"dzn-instrument-tile__copy","layout":{"type":"default"}} --><div class="wp-block-group dzn-instrument-tile__copy"><!-- wp:heading {"level":3} --><h3 class="wp-block-heading">نی</h3><!-- /wp:heading --><!-- wp:paragraph --><p>انتخاب در ثبت‌نام اولیه</p><!-- /wp:paragraph --></div><!-- /wp:group --></article><!-- /wp:group -->
-			<!-- wp:group {"tagName":"article","className":"dzn-instrument-tile dzn-instrument-tile--avaz","layout":{"type":"default"}} --><article class="wp-block-group dzn-instrument-tile dzn-instrument-tile--avaz" data-dzn-instrument="iranian-vocals"><!-- wp:group {"className":"dzn-instrument-tile__copy","layout":{"type":"default"}} --><div class="wp-block-group dzn-instrument-tile__copy"><!-- wp:heading {"level":3} --><h3 class="wp-block-heading">آواز ایرانی</h3><!-- /wp:heading --><!-- wp:paragraph --><p>انتخاب در ثبت‌نام اولیه</p><!-- /wp:paragraph --></div><!-- /wp:group --></article><!-- /wp:group -->
-		</div>
+	<div class="wp-block-group alignwide dzn-instrument-folio">
+		<!-- The folio supports 6–8 approved images. These candidates deliberately carry no course URLs. -->
+		<!-- wp:group {"tagName":"article","className":"dzn-instrument-tile dzn-instrument-tile--tar","layout":{"type":"default"}} --><article class="wp-block-group dzn-instrument-tile dzn-instrument-tile--tar"><!-- wp:group {"className":"dzn-instrument-tile__media dzn-owned-media-slot dzn-owned-media-slot--pending","layout":{"type":"default"}} --><div class="wp-block-group dzn-instrument-tile__media dzn-owned-media-slot dzn-owned-media-slot--pending"></div><!-- /wp:group --><!-- wp:group {"className":"dzn-instrument-tile__copy","layout":{"type":"default"}} --><div class="wp-block-group dzn-instrument-tile__copy"><!-- wp:heading {"level":3} --><h3 class="wp-block-heading">تار</h3><!-- /wp:heading --></div><!-- /wp:group --></article><!-- /wp:group -->
+		<!-- wp:group {"tagName":"article","className":"dzn-instrument-tile dzn-instrument-tile--santur","layout":{"type":"default"}} --><article class="wp-block-group dzn-instrument-tile dzn-instrument-tile--santur"><!-- wp:group {"className":"dzn-instrument-tile__media dzn-owned-media-slot dzn-owned-media-slot--pending","layout":{"type":"default"}} --><div class="wp-block-group dzn-instrument-tile__media dzn-owned-media-slot dzn-owned-media-slot--pending"></div><!-- /wp:group --><!-- wp:group {"className":"dzn-instrument-tile__copy","layout":{"type":"default"}} --><div class="wp-block-group dzn-instrument-tile__copy"><!-- wp:heading {"level":3} --><h3 class="wp-block-heading">سنتور</h3><!-- /wp:heading --></div><!-- /wp:group --></article><!-- /wp:group -->
+		<!-- wp:group {"tagName":"article","className":"dzn-instrument-tile dzn-instrument-tile--setar","layout":{"type":"default"}} --><article class="wp-block-group dzn-instrument-tile dzn-instrument-tile--setar"><!-- wp:group {"className":"dzn-instrument-tile__media dzn-owned-media-slot dzn-owned-media-slot--pending","layout":{"type":"default"}} --><div class="wp-block-group dzn-instrument-tile__media dzn-owned-media-slot dzn-owned-media-slot--pending"></div><!-- /wp:group --><!-- wp:group {"className":"dzn-instrument-tile__copy","layout":{"type":"default"}} --><div class="wp-block-group dzn-instrument-tile__copy"><!-- wp:heading {"level":3} --><h3 class="wp-block-heading">سه‌تار</h3><!-- /wp:heading --></div><!-- /wp:group --></article><!-- /wp:group -->
+		<!-- wp:group {"tagName":"article","className":"dzn-instrument-tile dzn-instrument-tile--kamancheh","layout":{"type":"default"}} --><article class="wp-block-group dzn-instrument-tile dzn-instrument-tile--kamancheh"><!-- wp:group {"className":"dzn-instrument-tile__media dzn-owned-media-slot dzn-owned-media-slot--pending","layout":{"type":"default"}} --><div class="wp-block-group dzn-instrument-tile__media dzn-owned-media-slot dzn-owned-media-slot--pending"></div><!-- /wp:group --><!-- wp:group {"className":"dzn-instrument-tile__copy","layout":{"type":"default"}} --><div class="wp-block-group dzn-instrument-tile__copy"><!-- wp:heading {"level":3} --><h3 class="wp-block-heading">کمانچه</h3><!-- /wp:heading --></div><!-- /wp:group --></article><!-- /wp:group -->
+		<!-- wp:group {"tagName":"article","className":"dzn-instrument-tile dzn-instrument-tile--ney","layout":{"type":"default"}} --><article class="wp-block-group dzn-instrument-tile dzn-instrument-tile--ney"><!-- wp:group {"className":"dzn-instrument-tile__media dzn-owned-media-slot dzn-owned-media-slot--pending","layout":{"type":"default"}} --><div class="wp-block-group dzn-instrument-tile__media dzn-owned-media-slot dzn-owned-media-slot--pending"></div><!-- /wp:group --><!-- wp:group {"className":"dzn-instrument-tile__copy","layout":{"type":"default"}} --><div class="wp-block-group dzn-instrument-tile__copy"><!-- wp:heading {"level":3} --><h3 class="wp-block-heading">نی</h3><!-- /wp:heading --></div><!-- /wp:group --></article><!-- /wp:group -->
+		<!-- wp:group {"tagName":"article","className":"dzn-instrument-tile dzn-instrument-tile--tombak","layout":{"type":"default"}} --><article class="wp-block-group dzn-instrument-tile dzn-instrument-tile--tombak"><!-- wp:group {"className":"dzn-instrument-tile__media dzn-owned-media-slot dzn-owned-media-slot--pending","layout":{"type":"default"}} --><div class="wp-block-group dzn-instrument-tile__media dzn-owned-media-slot dzn-owned-media-slot--pending"></div><!-- /wp:group --><!-- wp:group {"className":"dzn-instrument-tile__copy","layout":{"type":"default"}} --><div class="wp-block-group dzn-instrument-tile__copy"><!-- wp:heading {"level":3} --><h3 class="wp-block-heading">تنبک</h3><!-- /wp:heading --></div><!-- /wp:group --></article><!-- /wp:group -->
+		<!-- wp:group {"tagName":"article","className":"dzn-instrument-tile dzn-instrument-tile--daf","layout":{"type":"default"}} --><article class="wp-block-group dzn-instrument-tile dzn-instrument-tile--daf"><!-- wp:group {"className":"dzn-instrument-tile__media dzn-owned-media-slot dzn-owned-media-slot--pending","layout":{"type":"default"}} --><div class="wp-block-group dzn-instrument-tile__media dzn-owned-media-slot dzn-owned-media-slot--pending"></div><!-- /wp:group --><!-- wp:group {"className":"dzn-instrument-tile__copy","layout":{"type":"default"}} --><div class="wp-block-group dzn-instrument-tile__copy"><!-- wp:heading {"level":3} --><h3 class="wp-block-heading">دف</h3><!-- /wp:heading --></div><!-- /wp:group --></article><!-- /wp:group -->
+		<!-- wp:group {"tagName":"article","className":"dzn-instrument-tile dzn-instrument-tile--avaz","layout":{"type":"default"}} --><article class="wp-block-group dzn-instrument-tile dzn-instrument-tile--avaz"><!-- wp:group {"className":"dzn-instrument-tile__media dzn-owned-media-slot dzn-owned-media-slot--pending","layout":{"type":"default"}} --><div class="wp-block-group dzn-instrument-tile__media dzn-owned-media-slot dzn-owned-media-slot--pending"></div><!-- /wp:group --><!-- wp:group {"className":"dzn-instrument-tile__copy","layout":{"type":"default"}} --><div class="wp-block-group dzn-instrument-tile__copy"><!-- wp:heading {"level":3} --><h3 class="wp-block-heading">آواز ایرانی</h3><!-- /wp:heading --></div><!-- /wp:group --></article><!-- /wp:group -->
+	</div>
 	<!-- /wp:group -->
 </section>
 <!-- /wp:group -->
@@ -78,7 +66,7 @@
 <section class="wp-block-group alignfull dzn-home-section dzn-process">
 	<!-- wp:group {"align":"wide","className":"dzn-section-heading","layout":{"type":"default"}} --><div class="wp-block-group alignwide dzn-section-heading"><!-- wp:paragraph {"className":"dzn-eyebrow"} --><p class="dzn-eyebrow">دلنوازان چگونه کار می‌کند؟</p><!-- /wp:paragraph --><!-- wp:heading --><h2 class="wp-block-heading">یک مسیر روشن، با همراهی انسان‌ها</h2><!-- /wp:heading --><!-- wp:paragraph --><p>پس از ثبت‌نام اولیه، دلنوازان برای روشن‌شدن مسیر مناسب آموزش و هماهنگی‌های آغاز کار همراه شماست؛ نه یک بازار ناشناسِ دوره‌ها.</p><!-- /wp:paragraph --></div><!-- /wp:group -->
 	<!-- wp:list {"ordered":true,"align":"wide","className":"dzn-process__list"} -->
-		<ol class="dzn-process__list alignwide"><li><strong>ثبت‌نام / درخواست</strong><span>ساز، تجربه و شرایط زمانی خود را معرفی می‌کنید.</span></li><li><strong>جلسهٔ معارفهٔ رایگان</strong><span>پیش از تعهد به ترم، با فضای آموزش و مسیر کلاس آشنا می‌شوید.</span></li><li><strong>تصمیم برای ادامه و پرداخت هزینهٔ ترم</strong><span>اگر ادامه می‌دهید، هزینهٔ ترم پیش از آغاز ۱۲ جلسهٔ آموزشی پرداخت می‌شود.</span></li><li><strong>آغاز ترم پرداخت‌شدهٔ ۱۲ جلسه‌ای</strong><span>برنامهٔ یک ترم شامل ۱۲ جلسهٔ خصوصی هفتگی تنظیم می‌شود.</span></li></ol>
+	<ol class="dzn-process__list alignwide"><li><strong>ثبت‌نام / درخواست</strong><span>ساز، تجربه و شرایط زمانی خود را معرفی می‌کنید.</span></li><li><strong>جلسهٔ معارفهٔ رایگان</strong><span>پیش از تعهد به ترم، با فضای آموزش و مسیر کلاس آشنا می‌شوید.</span></li><li><strong>تصمیم برای ادامه و پرداخت هزینهٔ ترم</strong><span>اگر ادامه می‌دهید، هزینهٔ ترم پیش از آغاز ۱۲ جلسهٔ آموزشی پرداخت می‌شود.</span></li><li><strong>آغاز ترم پرداخت‌شدهٔ ۱۲ جلسه‌ای</strong><span>برنامهٔ یک ترم شامل ۱۲ جلسهٔ خصوصی هفتگی تنظیم می‌شود.</span></li></ol>
 	<!-- /wp:list -->
 </section>
 <!-- /wp:group -->
@@ -94,6 +82,19 @@
 			<!-- wp:group {"className":"dzn-pricing-region","layout":{"type":"default"}} --><div class="wp-block-group dzn-pricing-region"><!-- wp:paragraph {"className":"dzn-pricing-region__label"} --><p class="dzn-pricing-region__label">منطقهٔ قیمت‌گذاری</p><!-- /wp:paragraph --><!-- wp:html --><label class="screen-reader-text" for="dzn-pricing-region-select">منطقهٔ قیمت‌گذاری را انتخاب کنید</label><select id="dzn-pricing-region-select" class="dzn-pricing-region__select" data-dzn-pricing-select><option value="">منطقهٔ خود را انتخاب کنید</option><option value="AU">استرالیا</option><option value="NZ">نیوزیلند</option><option value="US">ایالات متحده</option><option value="CA">کانادا</option><option value="EU">منطقهٔ یورو</option><option value="GB">بریتانیا</option></select><p class="dzn-pricing-region__status" data-dzn-pricing-status aria-live="polite">انتخاب شما در این دستگاه ذخیره می‌شود.</p><!-- /wp:html --></div><!-- /wp:group -->
 		</div>
 		<!-- /wp:group -->
+	</div>
+	<!-- /wp:group -->
+</section>
+<!-- /wp:group -->
+
+<!-- wp:group {"tagName":"section","align":"full","className":"dzn-home-section dzn-hamnavaz","layout":{"type":"constrained"}} -->
+<section class="wp-block-group alignfull dzn-home-section dzn-hamnavaz">
+	<!-- wp:group {"align":"wide","className":"dzn-hamnavaz__grid","layout":{"type":"default"}} -->
+	<div class="wp-block-group alignwide dzn-hamnavaz__grid">
+		<!-- Final approved Hamnavaz copy belongs in this stable group. No product functionality is implied. -->
+		<!-- wp:group {"className":"dzn-hamnavaz__copy","layout":{"type":"default"}} --><div class="wp-block-group dzn-hamnavaz__copy"><!-- wp:heading --><h2 class="wp-block-heading">همنواز</h2><!-- /wp:heading --></div><!-- /wp:group -->
+		<!-- Replace only this stable group with approved Hamnavaz media. -->
+		<!-- wp:group {"className":"dzn-hamnavaz__media dzn-owned-media-slot dzn-owned-media-slot--hamnavaz dzn-owned-media-slot--pending","layout":{"type":"default"}} --><div class="wp-block-group dzn-hamnavaz__media dzn-owned-media-slot dzn-owned-media-slot--hamnavaz dzn-owned-media-slot--pending"></div><!-- /wp:group -->
 	</div>
 	<!-- /wp:group -->
 </section>
@@ -132,13 +133,10 @@
 
 <!-- wp:group {"tagName":"section","align":"full","className":"dzn-home-section dzn-editorial","layout":{"type":"constrained"}} -->
 <section class="wp-block-group alignfull dzn-home-section dzn-editorial">
-	<!-- wp:group {"align":"wide","className":"dzn-section-heading dzn-section-heading--row","layout":{"type":"default"}} --><div class="wp-block-group alignwide dzn-section-heading dzn-section-heading--row"><!-- wp:group {"className":"dzn-section-heading__copy","layout":{"type":"default"}} --><div class="wp-block-group dzn-section-heading__copy"><!-- wp:paragraph {"className":"dzn-eyebrow"} --><p class="dzn-eyebrow">مجلهٔ دلنوازان</p><!-- /wp:paragraph --><!-- wp:heading --><h2 class="wp-block-heading">برای شنیدن و شناختن</h2><!-- /wp:heading --></div><!-- /wp:group --><!-- wp:paragraph {"className":"dzn-inline-link"} --><p class="dzn-inline-link"><a href="<?php echo esc_url( home_url( '/articles/' ) ); ?>">همهٔ مقاله‌ها <span aria-hidden="true">←</span></a></p><!-- /wp:paragraph --></div>
-	<!-- /wp:group -->
+	<!-- wp:group {"align":"wide","className":"dzn-section-heading dzn-section-heading--row","layout":{"type":"default"}} --><div class="wp-block-group alignwide dzn-section-heading dzn-section-heading--row"><!-- wp:group {"className":"dzn-section-heading__copy","layout":{"type":"default"}} --><div class="wp-block-group dzn-section-heading__copy"><!-- wp:paragraph {"className":"dzn-eyebrow"} --><p class="dzn-eyebrow">مجلهٔ دلنوازان</p><!-- /wp:paragraph --><!-- wp:heading --><h2 class="wp-block-heading">برای شنیدن و شناختن</h2><!-- /wp:heading --></div><!-- /wp:group --><!-- wp:paragraph {"className":"dzn-inline-link"} --><p class="dzn-inline-link"><a href="<?php echo esc_url( home_url( '/articles/' ) ); ?>">همهٔ مقاله‌ها <span aria-hidden="true">←</span></a></p><!-- /wp:paragraph --></div><!-- /wp:group -->
 	<!-- wp:query {"queryId":4,"query":{"perPage":3,"pages":0,"offset":0,"postType":"post","order":"desc","orderBy":"date","author":"","search":"","exclude":[],"sticky":"exclude","inherit":false},"align":"wide","className":"dzn-article-query"} -->
 	<div class="wp-block-query alignwide dzn-article-query"><!-- wp:post-template {"className":"dzn-article-grid"} -->
-		<!-- wp:group {"tagName":"article","className":"dzn-article-card","layout":{"type":"default"}} -->
-		<article class="wp-block-group dzn-article-card"><!-- wp:post-featured-image {"isLink":true,"aspectRatio":"4/3"} /--><!-- wp:post-title {"isLink":true,"level":3} /--><!-- wp:post-excerpt {"moreText":"خواندن مقاله"} /--></article>
-		<!-- /wp:group -->
+		<!-- wp:group {"tagName":"article","className":"dzn-article-card","layout":{"type":"default"}} --><article class="wp-block-group dzn-article-card"><!-- wp:post-featured-image {"isLink":true,"aspectRatio":"4/3"} /--><!-- wp:post-title {"isLink":true,"level":3} /--><!-- wp:post-excerpt {"moreText":"خواندن مقاله"} /--></article><!-- /wp:group -->
 	<!-- /wp:post-template --></div>
 	<!-- /wp:query -->
 </section>
