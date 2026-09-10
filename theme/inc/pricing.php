@@ -22,12 +22,12 @@ function dzn_theme_pricing_presentation_config() {
 		'storageKey' => 'dzn-pricing-region',
 		'detectUrl'  => 'https://ipwho.is/',
 		'regions'    => array(
-			'AU' => array( 'label' => 'استرالیا', 'currency' => 'AUD', 'display' => 'A$250', 'amount' => 250 ),
-			'NZ' => array( 'label' => 'نیوزیلند', 'currency' => 'NZD', 'display' => 'NZ$250', 'amount' => 250 ),
-			'US' => array( 'label' => 'ایالات متحده', 'currency' => 'USD', 'display' => 'US$250', 'amount' => 250 ),
-			'CA' => array( 'label' => 'کانادا', 'currency' => 'CAD', 'display' => 'C$250', 'amount' => 250 ),
-			'EU' => array( 'label' => 'منطقهٔ یورو', 'currency' => 'EUR', 'display' => '€150', 'amount' => 150 ),
-			'GB' => array( 'label' => 'بریتانیا', 'currency' => 'GBP', 'display' => '£150', 'amount' => 150 ),
+			'AU' => array( 'label' => 'استرالیا', 'currency' => 'AUD', 'display' => 'A$250', 'displayPersian' => '۲۵۰ دلار استرالیا', 'amount' => 250 ),
+			'NZ' => array( 'label' => 'نیوزیلند', 'currency' => 'NZD', 'display' => 'NZ$250', 'displayPersian' => '۲۵۰ دلار نیوزیلند', 'amount' => 250 ),
+			'US' => array( 'label' => 'ایالات متحده', 'currency' => 'USD', 'display' => 'US$250', 'displayPersian' => '۲۵۰ دلار آمریکا', 'amount' => 250 ),
+			'CA' => array( 'label' => 'کانادا', 'currency' => 'CAD', 'display' => 'C$250', 'displayPersian' => '۲۵۰ دلار کانادا', 'amount' => 250 ),
+			'EU' => array( 'label' => 'منطقهٔ یورو', 'currency' => 'EUR', 'display' => '€150', 'displayPersian' => '۱۵۰ یورو', 'amount' => 150 ),
+			'GB' => array( 'label' => 'بریتانیا', 'currency' => 'GBP', 'display' => '£150', 'displayPersian' => '۱۵۰ پوند بریتانیا', 'amount' => 150 ),
 		),
 		'countryToRegion' => array(
 			'AU' => 'AU', 'NZ' => 'NZ', 'US' => 'US', 'CA' => 'CA', 'GB' => 'GB',

@@ -28,8 +28,8 @@
     const selected = config.regions[code];
     if (!selected) { showNeutral('منطقه‌ای را از فهرست انتخاب کنید.'); return; }
     if (select) select.value = code;
-    if (amount) amount.textContent = selected.display;
-    if (region) region.textContent = selected.label + ' · ' + selected.currency + ' · یک ترم';
+    if (amount) amount.textContent = selected.displayPersian || selected.display;
+    if (region) region.textContent = 'برای یک ترم';
     if (status) status.textContent = source === 'manual'
       ? 'انتخاب شما در این دستگاه ذخیره شد.'
       : 'این منطقه فقط بر اساس موقعیت تقریبی پیشنهاد شده است؛ می‌توانید آن را تغییر دهید.';

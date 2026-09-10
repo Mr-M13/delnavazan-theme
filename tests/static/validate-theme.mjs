@@ -13,6 +13,12 @@ const requiredFiles = [
   'assets/js/navigation.js',
   'assets/js/pricing-region.js', 'inc/patterns.php', 'inc/pricing.php',
   'patterns/homepage-editorial.php',
+  'assets/images/home-hero.png',
+  'assets/images/instrument-tar.webp', 'assets/images/instrument-setar.webp',
+  'assets/images/instrument-santur.webp', 'assets/images/instrument-kamancheh.webp',
+  'assets/images/instrument-tombak.webp', 'assets/images/instrument-piano.webp',
+  'assets/images/instrument-daf.webp', 'assets/images/contact-email.webp',
+  'assets/images/contact-instagram.webp',
 ];
 
 for (const relative of requiredFiles) {
@@ -21,7 +27,7 @@ for (const relative of requiredFiles) {
 }
 
 const style = fs.readFileSync(path.join(theme, 'style.css'), 'utf8');
-if (!/^Version:\s*0\.4\.5$/m.test(style)) throw new Error('Theme version must be 0.4.5 for this increment.');
+if (!/^Version:\s*0\.4\.6$/m.test(style)) throw new Error('Theme version must be 0.4.6 for this increment.');
 
 const themeJson = JSON.parse(fs.readFileSync(path.join(theme, 'theme.json'), 'utf8'));
 const palette = new Map(themeJson.settings.color.palette.map(({ slug, color }) => [slug, color.toLowerCase()]));
@@ -61,9 +67,9 @@ if (/https?:\/\/[^)'"]+\.(?:woff2?|ttf|otf)/i.test(css)) throw new Error('Extern
 if (/^\s*(?:input|select|textarea)(?:\s*,|\s*\{)/m.test(css)) throw new Error('Form primitives must remain scoped to Theme-owned form roots.');
 
 const pattern = fs.readFileSync(path.join(theme, 'patterns/homepage-editorial.php'), 'utf8');
-const sections = ['dzn-home-hero', 'dzn-facts', 'dzn-courses', 'dzn-process', 'dzn-pricing', 'dzn-hamnavaz', 'dzn-faq', 'dzn-contact', 'dzn-editorial'];
+const sections = ['dzn-home-hero', 'dzn-facts', 'dzn-courses', 'dzn-process', 'dzn-pricing', 'dzn-hamnavaz', 'dzn-faq', 'dzn-editorial'];
 for (const section of sections) if (!pattern.includes(section)) throw new Error('Homepage pattern is missing section: ' + section);
-if (pattern.includes('dzn-trust') || pattern.includes('dzn-course-index') || pattern.includes('wp:post-date')) throw new Error('Homepage retains removed trust, course-index, or article-date presentation.');
+if (pattern.includes('dzn-trust') || pattern.includes('dzn-course-index') || pattern.includes('dzn-contact') || pattern.includes('wp:post-date')) throw new Error('Homepage retains removed trust, course-index, contact, or article-date presentation.');
 if (pattern.includes('hero-strings.svg')) throw new Error('Homepage must not use the Delnavazan logo as hero artwork.');
 for (const slot of ['dzn-owned-media-slot--hero', 'dzn-instrument-tile__media', 'dzn-owned-media-slot--hamnavaz']) if (!pattern.includes(slot)) throw new Error('Homepage is missing replaceable media architecture: ' + slot);
 if (/class="[^"]*dzn-owned-media-slot[^"]*"[^>]*aria-hidden/i.test(pattern)) throw new Error('Reusable media containers must not hide future meaningful media from assistive technology.');
@@ -80,14 +86,16 @@ for (const step of ['ثبت‌نام / درخواست', 'جلسهٔ معارفه
 if (pattern.includes('dzn-price-ledger__row') || pattern.includes('dzn-price-ledger__note')) throw new Error('Pricing must not repeat commercial mechanics.');
 const folioSection = pattern.slice(pattern.indexOf('dzn-instrument-folio'), pattern.indexOf('dzn-process'));
 const instruments = new Set([...folioSection.matchAll(/dzn-instrument-tile--([a-z]+)/g)].map(([, instrument]) => instrument));
-if (instruments.size < 6 || instruments.size > 8) throw new Error('Instrument folio must contain 6–8 unique featured candidates.');
-if (/<a\b/i.test(folioSection)) throw new Error('Instrument folio must not invent course or catalog URLs.');
+const requiredInstruments = ['tar', 'setar', 'santur', 'kamancheh', 'tombak', 'piano', 'daf'];
+if (instruments.size !== requiredInstruments.length || requiredInstruments.some((instrument) => !instruments.has(instrument))) throw new Error('Instrument folio must contain exactly the approved seven instruments.');
+const folioLinks = [...folioSection.matchAll(/<a\b[^>]*href="([^"]+)"/gi)].map(([, href]) => href);
+if (folioLinks.length !== 1 || !folioLinks[0].includes("home_url( '/enrol/' )") || /[?&](?:instrument|course|service)=/i.test(folioLinks[0])) throw new Error('Folio may expose only the verified general enrolment route, without speculative preselection.');
+if (/dzn-instrument-tile[^<]*<a\b/is.test(folioSection)) throw new Error('Specific instrument tiles must remain non-links until a verified preselection contract exists.');
 const hamnavazSection = pattern.slice(pattern.indexOf('dzn-hamnavaz'), pattern.indexOf('dzn-faq'));
 if (!hamnavazSection.includes('<h2') || /<(?:a|button)\b/i.test(hamnavazSection)) throw new Error('Hamnavaz must be structurally present, claim-neutral, and secondary to enrolment.');
-const faqSection = pattern.slice(pattern.indexOf('dzn-faq'), pattern.indexOf('dzn-contact'));
+const faqSection = pattern.slice(pattern.indexOf('dzn-faq'), pattern.indexOf('dzn-editorial'));
 if ((faqSection.match(/<details\b/g) ?? []).length !== 6) throw new Error('Homepage FAQ must contain exactly six native disclosures.');
 for (const faq of ['کلاس‌ها برای چه کشورهایی برگزار می‌شود؟', 'اگر هنوز ساز ندارم چه کنم؟', 'آیا می‌توانم از سطح کاملاً مبتدی شروع کنم؟', 'اگر زمان یک جلسه مناسب نباشد چه می‌شود؟', 'هزینهٔ ترم چه زمانی پرداخت می‌شود؟', 'آیا داخل ایران هم می‌توان ثبت‌نام کرد؟']) if (!pattern.includes(faq)) throw new Error('Approved FAQ is missing: ' + faq);
-if (!pattern.includes('0413 413 004') || !pattern.includes('delnavazan@mail.com') || !pattern.includes('@insta.delnavazan')) throw new Error('Homepage contact routes are incomplete.');
 const publicTextExtensions = new Set(['.php', '.css', '.js', '.json', '.svg', '.txt', '.md']);
 const notificationNumber = /(?:\+?61[\s().-]*431[\s.-]*364[\s.-]*200|0431[\s.-]*364[\s.-]*200)/;
 const threeMonths = /(?:3\s*months|۳[\s\u200c]*ماه|سه[\s\u200c]+ماه)/iu;
@@ -130,32 +138,51 @@ if (!css.includes('clamp(1.9rem, 1.72rem + 1.8vw, 4.35rem)')) throw new Error('H
 for (const architecture of [
   '.dzn-home-hero__media {',
   'order: 1;',
-  'grid-template-columns: minmax(0, .82fr) minmax(0, 1.18fr)',
+  'grid-template-columns: minmax(0, 44fr) minmax(0, 56fr)',
   'grid-template-columns: repeat(2, minmax(0, 1fr))',
   'grid-template-columns: repeat(4, minmax(0, 1fr))',
   '@media (max-width: 23.375rem)',
+  '@media (max-width: 26.875rem)',
+  '@media (max-width: 20rem)',
   '@media (prefers-reduced-motion: reduce)',
   'scroll-behavior: auto',
   '.current-menu-item > a.dzn-nav-anchor:not(.dzn-nav-action)',
   '.site-footer :where(a, a:visited)',
 ]) if (!css.includes(architecture)) throw new Error('Responsive/accessibility architecture is missing: ' + architecture);
 const footer = fs.readFileSync(path.join(theme, 'footer.php'), 'utf8');
-if (!footer.includes('has_custom_logo()') || !footer.includes('0413 413 004') || footer.includes('+61 431 364 200')) throw new Error('Footer logo/contact contract failed.');
+if (!footer.includes('has_custom_logo()') || !footer.includes('0413 413 004') || !footer.includes('contact-email.webp') || !footer.includes('contact-instagram.webp') || footer.includes('contact-whatsapp') || footer.includes('+61 431 364 200')) throw new Error('Footer logo/contact contract failed.');
 const frontPage = fs.readFileSync(path.join(theme, 'front-page.php'), 'utf8');
 if (!frontPage.includes('the_content()') || frontPage.indexOf('the_content()') > frontPage.indexOf('get_footer()')) throw new Error('Front page must preserve authored Gutenberg content before the Theme footer.');
 if (!setup.includes(`lang="fa-IR" dir="rtl"`)) throw new Error('Public Persian language and RTL semantics are missing.');
-if (!pattern.includes('<bdi dir="ltr">0413 413 004</bdi>') || !pattern.includes('<bdi dir="ltr">delnavazan@mail.com</bdi>')) throw new Error('Public LTR contact fragments must remain isolated.');
+if (!footer.includes('<bdi dir="ltr">0413 413 004</bdi>') || !footer.includes('<bdi dir="ltr">delnavazan@mail.com</bdi>')) throw new Error('Public LTR contact fragments must remain isolated.');
 
 const pricing = fs.readFileSync(path.join(theme, 'inc/pricing.php'), 'utf8');
 for (const price of ['A$250', 'NZ$250', 'US$250', 'C$250', '€150', '£150']) if (!pricing.includes(price)) throw new Error('Missing active regional price: ' + price);
+for (const price of ['۲۵۰ دلار استرالیا', '۲۵۰ دلار نیوزیلند', '۲۵۰ دلار آمریکا', '۲۵۰ دلار کانادا', '۱۵۰ یورو', '۱۵۰ پوند بریتانیا']) if (!pricing.includes(price)) throw new Error('Missing Persian regional price presentation: ' + price);
 for (const code of ["'AU' => 'AU'", "'NZ' => 'NZ'", "'US' => 'US'", "'CA' => 'CA'", "'GB' => 'GB'", "'DE' => 'EU'", "'LT' => 'EU'"]) if (!pricing.includes(code)) throw new Error('Missing country mapping: ' + code);
 if (/AED|KWD|TRY/.test(pricing)) throw new Error('Inactive pricing regions must not be exposed.');
 const pricingJs = fs.readFileSync(path.join(theme, 'assets/js/pricing-region.js'), 'utf8');
 const sha256 = (source) => createHash('sha256').update(source).digest('hex');
-if (sha256(pricing) !== '9ffe5937dc9087025b865b2dd106bc1a7c4d75eade09e6099a930c9eef97f844') throw new Error('Pricing presentation configuration changed outside scope.');
-if (sha256(pricingJs) !== '708d74528350f940d6a4c543f075555a4b2c8f528dbaf7831f04352f900d1a42') throw new Error('Pricing-region behavior changed outside scope.');
+if (!pricingJs.includes('selected.displayPersian || selected.display') || !pricingJs.includes("region.textContent = 'برای یک ترم'")) throw new Error('Persian pricing hierarchy is missing.');
 if (!pricing.includes('ipwho.is')) throw new Error('Pricing presentation config must declare the isolated suggestion endpoint.');
 for (const required of ['localStorage', "credentials: 'omit'", 'countryToRegion', 'manuallySelected', 'showNeutral']) if (!pricingJs.includes(required)) throw new Error('Pricing UI is missing: ' + required);
 if (/default(?:ed)?\s*(?:to|=)\s*['"]?US/i.test(pricingJs)) throw new Error('Unsupported location must not silently default to United States.');
+
+const approvedAssetHashes = new Map([
+  ['assets/images/home-hero.png', '02f766c201b0be520b3ec1197030619a55c68b0f1371d464dfe8175504c9f627'],
+  ['assets/images/instrument-tar.webp', '19d5ce41acac7b2b37c162c2c52517c270e84abb7f1b068dcd48cc92cceb53c5'],
+  ['assets/images/instrument-setar.webp', 'a194aa0a03f41f209acf42010add098c21cacd8d8ecb0ad84aa613cd9745cec1'],
+  ['assets/images/instrument-santur.webp', '5e1f7014b60a18f0f3ff56b9cc575cffbf750fd4f9df77ee95eec4c37df7c33b'],
+  ['assets/images/instrument-kamancheh.webp', '30b4fb6f702718c50a94bc2321c01ba6659b793aba2ec37fe23dc17c76554e56'],
+  ['assets/images/instrument-tombak.webp', 'ec9e5804a720c56e31876e913daacd2e771771bcfb6630b46c6f45c336898945'],
+  ['assets/images/instrument-piano.webp', '5ab960f10721fb05247ba7d906ea164a19eb2654107104a2c6fbcc32ee07b6c9'],
+  ['assets/images/instrument-daf.webp', '43ebe826e21d3d3135d91ab82c05634c01f0e850e055c2ddf435658b6d510bfa'],
+  ['assets/images/contact-email.webp', '180ee80b596af55c68fc0ea57f5c7537ed2d6260e31595ae41e9cff9b3032f97'],
+  ['assets/images/contact-instagram.webp', 'a8d7d04800c2ecb318ea82f323412c3bac66ec7bb501087c3bb43bf77820c3ce'],
+]);
+for (const [relative, expected] of approvedAssetHashes) {
+  const actual = sha256(fs.readFileSync(path.join(theme, relative)));
+  if (actual !== expected) throw new Error('Approved media identity mismatch: ' + relative);
+}
 
 console.log('Static theme validation passed.');
