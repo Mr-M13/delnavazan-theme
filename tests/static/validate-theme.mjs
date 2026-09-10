@@ -134,6 +134,7 @@ if (!header.includes('has_custom_logo()')) throw new Error('Header must retain C
 const setup = fs.readFileSync(path.join(theme, 'inc/setup.php'), 'utf8');
 if (!setup.includes('dzn-nav-anchor') || !setup.includes('dzn-nav-page')) throw new Error('Primary menu must distinguish same-page anchors from page links.');
 for (const selector of ['a.dzn-nav-anchor', 'a.dzn-nav-page:not(.dzn-nav-action)', 'a:focus-visible', 'a.dzn-nav-action']) if (!css.includes(selector)) throw new Error('Navigation state treatment is incomplete: ' + selector);
+if (!/\.current-menu-item\s*>\s*a\.dzn-nav-anchor:not\(\.dzn-nav-action\)\s*\{[^}]*background:\s*transparent/is.test(css)) throw new Error('Same-page anchors must not inherit the current-page background.');
 if (!css.includes('clamp(1.9rem, 1.72rem + 1.8vw, 4.35rem)')) throw new Error('Homepage H1 reduction is missing.');
 for (const architecture of [
   '.dzn-home-hero__media {',

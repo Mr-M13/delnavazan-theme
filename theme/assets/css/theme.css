@@ -315,6 +315,7 @@
     content: none;
   }
   .primary-navigation .current-menu-item > a.dzn-nav-anchor:not(.dzn-nav-action) {
+    background: transparent;
     color: var(--dzn-color-text-primary);
     text-decoration: none;
   }
