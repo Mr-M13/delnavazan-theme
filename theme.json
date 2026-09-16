@@ -17,7 +17,7 @@
         { "slug": "surface-elevated", "name": "Elevated Surface", "color": "#FFFFFF" },
         { "slug": "text-primary", "name": "Primary Text", "color": "#252726" },
         { "slug": "text-secondary", "name": "Secondary Text", "color": "#104A4D" },
-        { "slug": "text-muted", "name": "Muted Text", "color": "#73736E" },
+        { "slug": "text-muted", "name": "Muted Text", "color": "#5F625F" },
         { "slug": "action-primary", "name": "Primary Action", "color": "#1E7B70" },
         { "slug": "action-primary-hover", "name": "Primary Action Hover", "color": "#104A4D" },
         { "slug": "action-secondary", "name": "Secondary Action", "color": "#315C82" },
@@ -61,7 +61,7 @@
         }
       ],
       "fontSizes": [
-        { "slug": "small", "name": "Small", "size": "0.875rem" },
+        { "slug": "small", "name": "Small", "size": "0.9rem" },
         { "slug": "medium", "name": "Medium", "size": "1rem" },
         { "slug": "large", "name": "Large", "size": "clamp(1.125rem, 1rem + 0.5vw, 1.375rem)" },
         { "slug": "x-large", "name": "X Large", "size": "clamp(1.5rem, 1.2rem + 1.5vw, 2.25rem)" },
@@ -80,7 +80,7 @@
     "typography": {
       "fontFamily": "var:preset|font-family|body",
       "fontSize": "var:preset|font-size|medium",
-      "lineHeight": "1.85"
+      "lineHeight": "1.8"
     },
     "elements": {
       "heading": {

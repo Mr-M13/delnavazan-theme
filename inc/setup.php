@@ -96,7 +96,19 @@ function dzn_theme_primary_menu_link_attributes( $attributes, $item, $args ) {
 
 	$path    = wp_parse_url( $attributes['href'], PHP_URL_PATH );
 	$path    = '/' . trim( (string) $path, '/' ) . '/';
+	$fragment = (string) wp_parse_url( $attributes['href'], PHP_URL_FRAGMENT );
+	$home     = '/' . trim( (string) wp_parse_url( home_url( '/' ), PHP_URL_PATH ), '/' ) . '/';
 	$classes = empty( $attributes['class'] ) ? array() : preg_split( '/\\s+/', $attributes['class'] );
+
+	/*
+	 * WordPress may correctly mark several homepage custom links as current.
+	 * They remain navigational anchors, not competing current-page identities.
+	 */
+	if ( '' !== $fragment && $path === $home ) {
+		$classes[] = 'dzn-nav-anchor';
+	} elseif ( '' === $fragment ) {
+		$classes[] = 'dzn-nav-page';
+	}
 
 	if ( '/enrol/' === $path ) {
 		$classes[] = 'dzn-nav-action';
