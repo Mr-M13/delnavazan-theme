@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.6 — 2026-09-16 — recovery candidate
+
+- Reconciled the authoritative repository `theme/` directory losslessly with the verified NIU staging 0.4.6 source capture.
+- Added non-runtime Page 8 Gutenberg and WordPress-state references with capture provenance and hashes; no WordPress database state was made Theme source.
+- Preserved the Theme/Media Library ownership boundary and exact captured Additional CSS reference.
+- This is a review candidate only: no packaging, activation, deployment, or NIU change occurred.
+
 ## 0.2.0 — 2026-09-06
 
 - Mapped representative production pages, content ownership and migration dependencies.

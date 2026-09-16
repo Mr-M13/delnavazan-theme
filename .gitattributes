@@ -5,3 +5,10 @@
 *.md text eol=lf
 *.php text eol=lf
 *.sh text eol=lf
+
+# The verified NIU 0.4.6 recovery has CRLF bytes in these assets.
+# Keep their exact recovered bytes in the candidate tree and worktree.
+theme/inc/assets.php -text -eol whitespace=-trailing-space
+theme/assets/js/pricing-region.js -text -eol whitespace=-trailing-space
+theme/footer.php whitespace=-trailing-space
+theme/assets/fonts/OFL.txt whitespace=-trailing-space

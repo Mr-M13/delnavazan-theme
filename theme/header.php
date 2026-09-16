@@ -35,13 +35,14 @@
 					<a class="site-branding__name" href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home"><?php bloginfo( 'name' ); ?></a>
 				<?php endif; ?>
 			</div>
-			<?php if ( get_bloginfo( 'description' ) ) : ?>
-				<p class="site-branding__description"><?php bloginfo( 'description' ); ?></p>
-			<?php endif; ?>
 		</div>
 		<button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-navigation" hidden>
 			<span class="menu-toggle__label"><?php esc_html_e( 'فهرست اصلی', 'delnavazan-theme' ); ?></span>
-			<span class="menu-toggle__icon" aria-hidden="true"></span>
+			<svg class="menu-toggle__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+				<path class="menu-toggle__line menu-toggle__line--top" d="M4 7h16"></path>
+				<path class="menu-toggle__line menu-toggle__line--middle" d="M4 12h16"></path>
+				<path class="menu-toggle__line menu-toggle__line--bottom" d="M4 17h16"></path>
+			</svg>
 		</button>
 		<nav id="primary-navigation" class="primary-navigation" aria-label="<?php esc_attr_e( 'فهرست اصلی', 'delnavazan-theme' ); ?>">
 			<?php

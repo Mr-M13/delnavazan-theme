@@ -28,8 +28,8 @@ for (const relative of requiredFiles) {
 }
 
 const style = fs.readFileSync(path.join(theme, 'style.css'), 'utf8');
-if (!/^Version:\s*0\.2\.0$/m.test(style)) {
-  throw new Error('Theme version must remain 0.2.0 for this foundation.');
+if (!/^Version:\s*0\.4\.6$/m.test(style)) {
+	throw new Error('Theme version must remain the recovered 0.4.6 candidate.');
 }
 
 const themeJson = JSON.parse(fs.readFileSync(path.join(theme, 'theme.json'), 'utf8'));

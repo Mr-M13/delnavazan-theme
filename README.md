@@ -2,8 +2,8 @@
 
 Authoritative repository for the Delnavazan whole-site production WordPress theme.
 
-Current foundation: **0.2.0**
-Status: **inactive; not deployed to staging or production**
+Current recovered candidate: **0.4.6**
+Status: **review candidate; inactive and not deployed to staging or production**
 
 ## Vision
 
@@ -34,6 +34,8 @@ Status: **inactive; not deployed to staging or production**
 ```
 
 `check-theme.sh` performs dependency-free static checks and runs `php -l` when PHP is available. PHP lint and WordPress runtime validation remain mandatory staging gates.
+
+The 0.4.6 recovery candidate preserves an exact NIU staging Theme capture in `theme/`. Its Page 8 Gutenberg export and environment-specific WordPress state are non-runtime references under `docs/fixtures/`; see [NIU 0.4.6 recovery](docs/NIU-0.4.6-RECOVERY.md).
 
 ## Safety boundary
 
