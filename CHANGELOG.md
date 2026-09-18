@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.0 — 2026-09-19 — Student Portal V1 presentation candidate
+
+- Added isolated, Persian-first Student Portal Home and Account templates on the accepted recovered 0.4.6 presentation baseline.
+- Added reusable announcement, Upcoming Lesson, state, Term timeline, history, feedback, contact, profile, payment, future-order and one-way notification components.
+- Added a filter-only display-model boundary: the Theme performs no protected Student reads, Platform writes, payment operations, provider actions or calendar integration.
+- Added an authenticated, non-production development preview with in-memory synthetic `.invalid` fixtures and no persistence.
+- Added Portal-only responsive RTL styles and dependency-free progressive enhancement; public homepage, header, footer, pricing and existing Theme source remain unmodified.
+- Added static contract checks and documented the future integration seams and deferred authority.
+
 ## 0.4.6 — 2026-09-16 — recovery candidate
 
 - Reconciled the authoritative repository `theme/` directory losslessly with the verified NIU staging 0.4.6 source capture.

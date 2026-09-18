@@ -16,7 +16,7 @@ Why: the current site is Neve-based and its content is a mixture of core Gutenbe
 | Markup, layout, type, colour, responsive behaviour and interaction states | Theme |
 | Temporary legacy presentation | Delnavazan Enhancements until explicitly migrated |
 
-The theme consumes display-ready values only. It must not become a second application layer.
+The theme consumes display-ready values only. It must not become a second application layer. Student Portal templates use the `dzn_theme_student_portal_view_model` filter as their sole future protected-read seam; an absent model produces an honest unavailable state.
 
 ## Layers
 
@@ -31,9 +31,15 @@ The theme consumes display-ready values only. It must not become a second applic
 
 Theme components receive arrays of display values. A plugin, block render callback, or template controller may map domain objects into those arrays. The theme does not know internal Platform IDs, status transitions, capabilities, schema, or repositories.
 
+## Student Portal presentation layer
+
+Portal Home and Account are dedicated classic page templates sharing a Portal shell and reusable components. `assets/css/portal.css` and `assets/js/portal.js` load only on those templates and the guarded preview template, isolating the accepted public Theme.
+
+The preview fixture is available only to a user with `edit_theme_options` outside the WordPress `production` environment. It is synthetic, in memory, visibly labelled and never exposed through the real Home or Account templates.
+
 ## JavaScript policy
 
-JavaScript is progressive enhancement only. Version 0.2.0 includes a small navigation toggle with Escape close, focus return and initial-link focus. Native elements (`details`, forms, links) are preferred. No framework or general-purpose slider is included.
+JavaScript is progressive enhancement only. The public Theme includes a small navigation toggle with Escape close, focus return and initial-link focus. Portal JavaScript adds session-local announcement dismissal, native dialog controls and explicit presentation-only action feedback. It performs no fetch, submit, protected read or write. Native elements are preferred. No framework or general-purpose slider is included.
 
 ## Accessibility baseline
 

@@ -2,8 +2,9 @@
 
 Authoritative repository for the Delnavazan whole-site production WordPress theme.
 
-Current recovered candidate: **0.4.6**
-Status: **review candidate; inactive and not deployed to staging or production**
+Current Theme candidate: **0.5.0**
+Implementation base: **recovered and accepted 0.4.6 source**
+Status: **Student Portal V1 review candidate; inactive and not deployed to staging or production**
 
 ## Vision
 
@@ -26,6 +27,8 @@ Status: **review candidate; inactive and not deployed to staging or production**
 - `scripts/` — validation and package helpers.
 - `dist/` — ignored local build output.
 
+Student Portal V1 adds isolated Home and Account presentation templates. It accepts display-ready data through a filter and includes a guarded development preview; see [Student Portal V1](docs/STUDENT-PORTAL-V1.md).
+
 ## Local checks
 
 ```sh
@@ -35,7 +38,7 @@ Status: **review candidate; inactive and not deployed to staging or production**
 
 `check-theme.sh` performs dependency-free static checks and runs `php -l` when PHP is available. PHP lint and WordPress runtime validation remain mandatory staging gates.
 
-The 0.4.6 recovery candidate preserves an exact NIU staging Theme capture in `theme/`. Its Page 8 Gutenberg export and environment-specific WordPress state are non-runtime references under `docs/fixtures/`; see [NIU 0.4.6 recovery](docs/NIU-0.4.6-RECOVERY.md).
+The 0.4.6 base preserves an exact NIU staging Theme capture in its parent commit. Student Portal V1 extends that accepted source additively. Its Page 8 Gutenberg export and environment-specific WordPress state remain non-runtime references under `docs/fixtures/`; see [NIU 0.4.6 recovery](docs/NIU-0.4.6-RECOVERY.md).
 
 ## Safety boundary
 

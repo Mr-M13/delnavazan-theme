@@ -16,8 +16,14 @@ const requiredFiles = [
   'single.php',
   'index.php',
   'assets/css/theme.css',
+  'assets/css/portal.css',
   'assets/css/editor.css',
   'assets/js/navigation.js',
+  'assets/js/portal.js',
+  'inc/portal.php',
+  'page-templates/student-portal-home.php',
+  'page-templates/student-portal-account.php',
+  'page-templates/student-portal-preview.php',
 ];
 
 for (const relative of requiredFiles) {
@@ -28,8 +34,8 @@ for (const relative of requiredFiles) {
 }
 
 const style = fs.readFileSync(path.join(theme, 'style.css'), 'utf8');
-if (!/^Version:\s*0\.4\.6$/m.test(style)) {
-	throw new Error('Theme version must remain the recovered 0.4.6 candidate.');
+if (!/^Version:\s*0\.5\.0$/m.test(style)) {
+	throw new Error('Student Portal V1 candidate must identify as Theme 0.5.0.');
 }
 
 const themeJson = JSON.parse(fs.readFileSync(path.join(theme, 'theme.json'), 'utf8'));
@@ -77,8 +83,67 @@ for (const file of walk(theme)) {
   }
 }
 
+const portalRuntime = fs.readFileSync(path.join(theme, 'inc/portal.php'), 'utf8');
+const portalShell = fs.readFileSync(path.join(theme, 'template-parts/portal/shell.php'), 'utf8');
+const portalPreview = fs.readFileSync(path.join(theme, 'page-templates/student-portal-preview.php'), 'utf8');
+const lessonState = fs.readFileSync(path.join(theme, 'template-parts/portal/lesson-state.php'), 'utf8');
+const portalJs = fs.readFileSync(path.join(theme, 'assets/js/portal.js'), 'utf8');
+
+if (!portalRuntime.includes("'production' !== wp_get_environment_type()")
+  || !portalRuntime.includes("current_user_can( 'edit_theme_options' )")) {
+  throw new Error('Synthetic Portal fixtures must remain admin-only and unavailable in production.');
+}
+
+if (!portalRuntime.includes("apply_filters(\n\t\t'dzn_theme_student_portal_view_model'")) {
+  throw new Error('Portal view-model integration seam is missing.');
+}
+
+if (!portalRuntime.includes('if ( ! dzn_theme_is_portal_template() )')) {
+  throw new Error('Portal assets must remain isolated from public Theme pages.');
+}
+
+if (!portalRuntime.includes("array( 'home', 'account' )") || !portalShell.includes("'account' === $screen")) {
+  throw new Error('Portal shell must preserve the locked Home + Account architecture.');
+}
+
+if (!portalPreview.includes('dzn_theme_student_portal_preview_allowed()')) {
+  throw new Error('Portal preview template must enforce the synthetic-fixture gate.');
+}
+
+for (const state of ['upcoming', 'starting_soon', 'absence_notified', 'time_changed', 'academy_cancelled', 'awaiting_reschedule', 'none']) {
+  if (!lessonState.includes(`'${state}'`)) {
+    throw new Error(`Missing Upcoming Lesson presentation state: ${state}`);
+  }
+}
+
+for (const stateAxis of ['lifecycle_state', 'schedule_state', 'attendance_state', 'entitlement_state']) {
+  if (!portalRuntime.includes(`'${stateAxis}'`)) {
+    throw new Error(`Portal fixture collapses required Lesson state axis: ${stateAxis}`);
+  }
+}
+
+if (/fetch\s*\(|XMLHttpRequest|\.submit\s*\(/.test(portalJs)) {
+  throw new Error('Portal presentation JavaScript must not perform writes or remote requests.');
+}
+
+const portalPhp = walk(path.join(theme, 'template-parts/portal'))
+  .map((file) => fs.readFileSync(file, 'utf8'))
+  .join('\n');
+
+if (/<form\b/i.test(portalPhp)) {
+  throw new Error('Presentation-only Portal controls must not silently create submittable forms.');
+}
+
+const portalNav = fs.readFileSync(path.join(theme, 'template-parts/portal/navigation.php'), 'utf8');
+for (const prohibitedDestination of ['جلسات', 'پیام‌ها', 'سفارش‌ها']) {
+  if (portalNav.includes(prohibitedDestination)) {
+    throw new Error(`Prohibited Portal top-level destination: ${prohibitedDestination}`);
+  }
+}
+
 let braces = 0;
-for (const character of css.replace(/\/\*[\s\S]*?\*\//g, '')) {
+const portalCss = fs.readFileSync(path.join(theme, 'assets/css/portal.css'), 'utf8');
+for (const character of `${css}\n${portalCss}`.replace(/\/\*[\s\S]*?\*\//g, '')) {
   if (character === '{') braces += 1;
   if (character === '}') braces -= 1;
   if (braces < 0) throw new Error('CSS closes a block before it opens.');
