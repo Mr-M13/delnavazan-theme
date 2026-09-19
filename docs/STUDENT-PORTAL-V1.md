@@ -86,11 +86,11 @@ For state review, append `lesson-state=upcoming`, `starting_soon`, `absence_noti
 
 The preview refuses access in `production` and for unauthorised visitors. Fixtures use only explicitly allowlisted `.invalid` contact destinations (`contact.example.invalid`, `student-portal@example.invalid` and `social.example.invalid`), are held only in PHP arrays, are visibly labelled and are never stored. They cannot reach Delnavazan WhatsApp, email, Instagram or production phone destinations. The real Home and Account templates never fall back to these fixtures; authoritative adapters retain control of production contact values.
 
-## Independent-review correction round 1
+## Independent-review correction and merge closeout
 
-The reviewed 0.5.0 candidate failed independent review because an unknown Lesson state fell open to `upcoming`, the development fixture used live-looking Delnavazan contact destinations, and the non-native dialog path imitated a modal without adequate focus behaviour. This correction candidate remains a descendant of the reviewed candidate and addresses only those findings plus direct regression coverage.
+The original 0.5.0 candidate failed independent review because an unknown Lesson state fell open to `upcoming`, the development fixture used live-looking Delnavazan contact destinations, and the non-native dialog path imitated a modal without adequate focus behaviour. Corrected candidate `bc891ae401aed0a58c1dea2c5d7587b3046b6773` addressed those findings, passed independent re-review and was fast-forwarded unchanged to `main`.
 
-`tests/render/portal-corrections.php` executes the unknown-state render boundary and fixture factory. `tests/static/portal-dialog.mjs` executes native and disclosure behaviour with a deterministic DOM double. `tests/static/validate-theme.mjs` additionally pins the contact allowlist and fallback contract. Full browser keyboard, responsive-width and visual checks remain mandatory staging gates; these dependency-free tests do not claim to replace browser execution. Portal V1 remains unmerged and incomplete pending independent re-review.
+`tests/render/portal-corrections.php` executes the unknown-state render boundary and fixture factory. `tests/static/portal-dialog.mjs` executes native and disclosure behaviour with a deterministic DOM double. `tests/static/validate-theme.mjs` additionally pins the contact allowlist and fallback contract. Full WordPress runtime, browser keyboard, responsive-width and visual checks remain mandatory staging gates; these dependency-free tests do not claim to replace browser execution. No production deployment has occurred. Platform integration, Google/provider operations, attendance authority and Student write actions remain unimplemented by the Theme.
 
 ## Deferred integrations
 

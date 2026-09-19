@@ -35,11 +35,13 @@ Theme components receive arrays of display values. A plugin, block render callba
 
 Portal Home and Account are dedicated classic page templates sharing a Portal shell and reusable components. `assets/css/portal.css` and `assets/js/portal.js` load only on those templates and the guarded preview template, isolating the accepted public Theme.
 
-The preview fixture is available only to a user with `edit_theme_options` outside the WordPress `production` environment. It is synthetic, in memory, visibly labelled and never exposed through the real Home or Account templates.
+The preview fixture is available only to a user with `edit_theme_options` outside the WordPress `production` environment. It is synthetic, in memory, visibly labelled, restricted to `.invalid` contact destinations and never exposed through the real Home or Account templates. Unknown Lesson presentation states fail safely at the render boundary and cannot expose Lesson actions.
 
 ## JavaScript policy
 
-JavaScript is progressive enhancement only. The public Theme includes a small navigation toggle with Escape close, focus return and initial-link focus. Portal JavaScript adds session-local announcement dismissal, native dialog controls and explicit presentation-only action feedback. It performs no fetch, submit, protected read or write. Native elements are preferred. No framework or general-purpose slider is included.
+JavaScript is progressive enhancement only. The public Theme includes a small navigation toggle with Escape close, focus return and initial-link focus. Portal JavaScript adds session-local announcement dismissal, native dialog controls and explicit presentation-only action feedback. Where native `showModal()` is unavailable, Portal content becomes a non-modal inline disclosure with predictable opener focus rather than imitating a modal. It performs no fetch, submit, protected read or write. Native elements are preferred. No framework or general-purpose slider is included.
+
+Student Portal V1 is merged into Theme `main` at version 0.5.0, but has not been deployed. Platform integration, Google/provider operations, attendance authority and all Student writes remain outside the Theme.
 
 ## Accessibility baseline
 

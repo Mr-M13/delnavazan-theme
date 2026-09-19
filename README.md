@@ -2,9 +2,9 @@
 
 Authoritative repository for the Delnavazan whole-site production WordPress theme.
 
-Current Theme candidate: **0.5.0**
+Current Theme version: **0.5.0**
 Implementation base: **recovered and accepted 0.4.6 source**
-Status: **Student Portal V1 review candidate; inactive and not deployed to staging or production**
+Status: **Student Portal V1 merged to `main`; not deployed to staging or production**
 
 ## Vision
 
@@ -27,7 +27,7 @@ Status: **Student Portal V1 review candidate; inactive and not deployed to stagi
 - `scripts/` — validation and package helpers.
 - `dist/` — ignored local build output.
 
-Student Portal V1 adds isolated Home and Account presentation templates. It accepts display-ready data through a filter and includes a guarded development preview; see [Student Portal V1](docs/STUDENT-PORTAL-V1.md).
+Student Portal V1 adds independently reviewed, isolated Home and Account presentation templates. It accepts display-ready data through a filter and includes a guarded development preview; see [Student Portal V1](docs/STUDENT-PORTAL-V1.md). WordPress runtime, browser accessibility and responsive/RTL visual checks remain staging gates.
 
 ## Local checks
 
