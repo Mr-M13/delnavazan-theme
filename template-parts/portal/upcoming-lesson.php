@@ -7,7 +7,9 @@
 
 $lesson = isset( $args['lesson'] ) && is_array( $args['lesson'] ) ? $args['lesson'] : array();
 $state = isset( $lesson['presentation_state'] ) ? (string) $lesson['presentation_state'] : 'none';
-$has_lesson = 'none' !== $state && ! empty( $lesson['course'] );
+$approved_states = array( 'upcoming', 'starting_soon', 'absence_notified', 'time_changed', 'academy_cancelled', 'awaiting_reschedule', 'none' );
+$state_is_valid = in_array( $state, $approved_states, true );
+$has_lesson = $state_is_valid && 'none' !== $state && ! empty( $lesson['course'] );
 ?>
 <section class="dzn-portal-section dzn-upcoming" aria-labelledby="dzn-upcoming-title">
 	<div class="dzn-upcoming__heading">
@@ -25,8 +27,8 @@ $has_lesson = 'none' !== $state && ! empty( $lesson['course'] );
 		'lesson-state',
 		array(
 			'state'   => $state,
-			'message' => $lesson['notice'] ?? '',
-			'owed'    => $lesson['owed_session_label'] ?? '',
+			'message' => $state_is_valid ? ( $lesson['notice'] ?? '' ) : '',
+			'owed'    => $state_is_valid ? ( $lesson['owed_session_label'] ?? '' ) : '',
 		)
 	);
 	?>
@@ -55,6 +57,7 @@ $has_lesson = 'none' !== $state && ! empty( $lesson['course'] );
 		<?php if ( empty( $lesson['join_url'] ) ) : ?><p id="dzn-join-pending" class="dzn-portal-help"><?php esc_html_e( 'پیوند معتبر کلاس هنوز از منبع امن دریافت نشده است.', 'delnavazan-theme' ); ?></p><?php endif; ?>
 	<?php endif; ?>
 
+	<?php if ( $has_lesson ) : ?>
 	<dialog id="dzn-absence-dialog" class="dzn-portal-dialog" aria-labelledby="dzn-absence-title">
 		<div class="dzn-portal-dialog__body">
 			<button class="dzn-portal-icon-button dzn-portal-dialog__close" type="button" data-dzn-dialog-close aria-label="<?php esc_attr_e( 'بستن', 'delnavazan-theme' ); ?>">×</button>
@@ -80,4 +83,5 @@ $has_lesson = 'none' !== $state && ! empty( $lesson['course'] );
 			</div>
 		</div>
 	</dialog>
+	<?php endif; ?>
 </section>

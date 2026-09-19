@@ -238,9 +238,9 @@ function dzn_theme_student_portal_demo_model( $screen, $preview_url ) {
 			),
 			'history' => $history,
 			'contact' => array(
-				'whatsapp_url' => 'https://wa.me/61413413004',
-				'email_url'    => 'mailto:delnavazan@mail.com',
-				'instagram_url'=> 'https://www.instagram.com/insta.delnavazan/',
+				'whatsapp_url' => 'https://contact.example.invalid/whatsapp',
+				'email_url'    => 'mailto:student-portal@example.invalid',
+				'instagram_url'=> 'https://social.example.invalid/instagram',
 			),
 		)
 	);

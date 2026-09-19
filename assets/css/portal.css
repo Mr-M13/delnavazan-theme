@@ -339,6 +339,12 @@
     background: color-mix(in srgb, var(--dzn-color-text-secondary) 56%, transparent);
   }
 
+  .dzn-portal-dialog[data-dzn-dialog-fallback="disclosure"] {
+    position: static;
+    margin-block: var(--dzn-space-4);
+    box-shadow: none;
+  }
+
   .dzn-portal-dialog__body {
     position: relative;
     padding: clamp(1.25rem, 5vw, 2rem);
