@@ -29,11 +29,23 @@
     });
   });
 
-  const openDialog = (dialog) => {
+  const dialogOpeners = new WeakMap();
+
+  const restoreDialogOpener = (dialog) => {
+    const opener = dialogOpeners.get(dialog);
+    if (opener && typeof opener.focus === 'function') opener.focus();
+    dialogOpeners.delete(dialog);
+  };
+
+  const openDialog = (dialog, opener) => {
     if (!dialog) return;
+    dialogOpeners.set(dialog, opener);
     if (typeof dialog.showModal === 'function') {
       dialog.showModal();
     } else {
+      // An old browser gets an inline, non-modal disclosure. Focus stays on
+      // its toggle; this deliberately does not imitate modal focus trapping.
+      dialog.dataset.dznDialogFallback = 'disclosure';
       dialog.setAttribute('open', '');
     }
   };
@@ -44,16 +56,18 @@
       dialog.close();
     } else {
       dialog.removeAttribute('open');
+      restoreDialogOpener(dialog);
     }
   };
 
   document.querySelectorAll('[data-dzn-dialog-open]').forEach((button) => {
     button.addEventListener('click', () => {
-      openDialog(document.getElementById(button.dataset.dznDialogOpen));
+      openDialog(document.getElementById(button.dataset.dznDialogOpen), button);
     });
   });
 
   document.querySelectorAll('.dzn-portal-dialog').forEach((dialog) => {
+    dialog.addEventListener('close', () => restoreDialogOpener(dialog));
     dialog.querySelector('[data-dzn-dialog-close]')?.addEventListener('click', () => closeDialog(dialog));
     dialog.addEventListener('click', (event) => {
       if (event.target === dialog) closeDialog(dialog);

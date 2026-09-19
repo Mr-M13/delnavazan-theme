@@ -2,6 +2,11 @@
 
 ## 0.5.0 — 2026-09-19 — Student Portal V1 presentation candidate
 
+- Recorded the independent-review failure and correction round: unknown Lesson states now render an explicit unavailable state and suppress all Lesson actions rather than falling open to `upcoming`.
+- Replaced live-looking development-preview contacts with an explicit `.invalid` allowlist without changing adapter-supplied production contact behaviour.
+- Made the no-`showModal()` path an honest inline, non-modal disclosure with predictable focus and exact opener restoration; native close also restores its opener.
+- Added executable render, fixture-isolation and dialog-path regression tests. Browser accessibility and responsive verification remain staging gates; this candidate is not merged or complete.
+
 - Added isolated, Persian-first Student Portal Home and Account templates on the accepted recovered 0.4.6 presentation baseline.
 - Added reusable announcement, Upcoming Lesson, state, Term timeline, history, feedback, contact, profile, payment, future-order and one-way notification components.
 - Added a filter-only display-model boundary: the Theme performs no protected Student reads, Platform writes, payment operations, provider actions or calendar integration.

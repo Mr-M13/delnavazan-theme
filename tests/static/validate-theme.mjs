@@ -89,6 +89,21 @@ const portalPreview = fs.readFileSync(path.join(theme, 'page-templates/student-p
 const lessonState = fs.readFileSync(path.join(theme, 'template-parts/portal/lesson-state.php'), 'utf8');
 const portalJs = fs.readFileSync(path.join(theme, 'assets/js/portal.js'), 'utf8');
 
+for (const liveDestination of [/wa\.me/i, /instagram\.com/i, /delnavazan@mail/i, /61413413004/]) {
+  if (liveDestination.test(portalRuntime)) {
+    throw new Error(`Synthetic Portal fixture contains a live contact destination: ${liveDestination}`);
+  }
+}
+for (const syntheticDestination of [
+  'https://contact.example.invalid/whatsapp',
+  'mailto:student-portal@example.invalid',
+  'https://social.example.invalid/instagram',
+]) {
+  if (!portalRuntime.includes(syntheticDestination)) {
+    throw new Error(`Synthetic Portal fixture destination is not allowlisted: ${syntheticDestination}`);
+  }
+}
+
 if (!portalRuntime.includes("'production' !== wp_get_environment_type()")
   || !portalRuntime.includes("current_user_can( 'edit_theme_options' )")) {
   throw new Error('Synthetic Portal fixtures must remain admin-only and unavailable in production.');
@@ -114,6 +129,11 @@ for (const state of ['upcoming', 'starting_soon', 'absence_notified', 'time_chan
   if (!lessonState.includes(`'${state}'`)) {
     throw new Error(`Missing Upcoming Lesson presentation state: ${state}`);
   }
+}
+
+if (!portalJs.includes("dznDialogFallback = 'disclosure'")
+  || portalJs.includes("setAttribute('aria-modal'")) {
+  throw new Error('Dialog fallback must be an explicit non-modal disclosure.');
 }
 
 for (const stateAxis of ['lifecycle_state', 'schedule_state', 'attendance_state', 'entitlement_state']) {

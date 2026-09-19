@@ -52,6 +52,8 @@ The component accepts one already-resolved presentation state:
 
 The view model also keeps lifecycle, schedule, attendance and entitlement fields separate. The Theme does not derive one from another. A schedule release is not presented as a cancellation unless the supplied presentation model explicitly says so. An academy-owed session message renders only when supplied.
 
+The render boundary strictly allowlists those seven values. Missing state resolves to the honest `none` presentation. Any malformed, misspelled or future value renders an explicit unavailable notice and suppresses Lesson facts, Join, absence, calendar and their trusted action URLs; it never falls open to `upcoming`.
+
 ## Timezone behaviour
 
 Home renders a human label such as “زمان بریزبن”. Account exposes an editable-looking timezone preference and may carry an IANA value as non-prominent form metadata. Theme controls do not persist the change and never reschedule a Lesson. A future authorised account-preference endpoint must own validation and persistence.
@@ -59,8 +61,9 @@ Home renders a human label such as “زمان بریزبن”. Account exposes 
 ## Calendar, Join and absence boundaries
 
 - Join renders a real link only when a trusted model supplies a URL. Otherwise it is disabled and says why.
-- Absence uses a native dialog to demonstrate the future request shape. Its action is `type="button"`, makes no request and reports that nothing was saved.
+- Absence uses a native dialog to demonstrate the future request shape. Its action is `type="button"`, makes no request and reports that nothing was saved. Native close restores the exact opener.
 - Calendar uses a native dialog with disabled Google and Apple options. No OAuth, subscription, provider credential, background write or generated event exists in V1.
+- Browsers without `showModal()` receive an explicitly non-modal inline disclosure: it does not claim `aria-modal`, leaves focus on the keyboard-operated opener while opening and restores that opener when closed. It intentionally has no modal focus trap.
 
 ## Account and commerce boundaries
 
@@ -81,7 +84,13 @@ Account displays at most five display-ready notifications and an optional archiv
 
 For state review, append `lesson-state=upcoming`, `starting_soon`, `absence_notified`, `time_changed`, `academy_cancelled`, `awaiting_reschedule` or `none` to the Home preview query. These are isolated synthetic storyboards, not inferred domain state.
 
-The preview refuses access in `production` and for unauthorised visitors. Fixtures use synthetic `.invalid` contact data, are held only in PHP arrays, are visibly labelled and are never stored. The real Home and Account templates never fall back to these fixtures.
+The preview refuses access in `production` and for unauthorised visitors. Fixtures use only explicitly allowlisted `.invalid` contact destinations (`contact.example.invalid`, `student-portal@example.invalid` and `social.example.invalid`), are held only in PHP arrays, are visibly labelled and are never stored. They cannot reach Delnavazan WhatsApp, email, Instagram or production phone destinations. The real Home and Account templates never fall back to these fixtures; authoritative adapters retain control of production contact values.
+
+## Independent-review correction round 1
+
+The reviewed 0.5.0 candidate failed independent review because an unknown Lesson state fell open to `upcoming`, the development fixture used live-looking Delnavazan contact destinations, and the non-native dialog path imitated a modal without adequate focus behaviour. This correction candidate remains a descendant of the reviewed candidate and addresses only those findings plus direct regression coverage.
+
+`tests/render/portal-corrections.php` executes the unknown-state render boundary and fixture factory. `tests/static/portal-dialog.mjs` executes native and disclosure behaviour with a deterministic DOM double. `tests/static/validate-theme.mjs` additionally pins the contact allowlist and fallback contract. Full browser keyboard, responsive-width and visual checks remain mandatory staging gates; these dependency-free tests do not claim to replace browser execution. Portal V1 remains unmerged and incomplete pending independent re-review.
 
 ## Deferred integrations
 

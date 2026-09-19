@@ -8,7 +8,7 @@
  * @package DelnavazanTheme
  */
 
-$state = isset( $args['state'] ) ? (string) $args['state'] : 'upcoming';
+$state = isset( $args['state'] ) ? (string) $args['state'] : 'none';
 $message = isset( $args['message'] ) ? (string) $args['message'] : '';
 $owed = isset( $args['owed'] ) ? (string) $args['owed'] : '';
 $states = array(
@@ -20,7 +20,10 @@ $states = array(
 	'awaiting_reschedule'=> array( 'label' => 'در انتظار زمان جدید', 'tone' => 'warning' ),
 	'none'               => array( 'label' => 'کلاس بعدی هنوز تعیین نشده', 'tone' => 'muted' ),
 );
-$presentation = $states[ $state ] ?? $states['upcoming'];
+$presentation = $states[ $state ] ?? array(
+	'label' => 'اطلاعات کلاس در دسترس نیست؛ لطفاً دوباره بررسی کنید.',
+	'tone'  => 'error',
+);
 ?>
 <div class="dzn-lesson-state dzn-lesson-state--<?php echo esc_attr( $presentation['tone'] ); ?>">
 	<p class="dzn-lesson-state__label"><?php echo esc_html( $presentation['label'] ); ?></p>
