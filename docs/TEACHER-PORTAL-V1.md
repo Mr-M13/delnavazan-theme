@@ -1,0 +1,39 @@
+# Teacher Portal V1 — presentation scaffold candidate
+
+## Scope and boundary
+
+Teacher Portal V1 is Persian-first Theme presentation against synthetic, display-ready `TeacherPortalReadModel` fixtures. The Theme does not query Platform tables and owns no scheduling, attendance, delivery, payment, absence, replacement, enrolment, Term, Lesson, availability, Google-connection or notification truth. A future adapter supplies the same array shape through `dzn_theme_teacher_portal_view_model`; templates only escape, arrange and progressively disclose it.
+
+## Home hierarchy
+
+Home renders an optional academy/technical/reminder announcement, nine “Needs Your Attention” scenarios, chronological classes, a calendar/list preview and troubleshooting. Attention cards cover intro requests, reported Student absence, Teacher disruption, authorised replacement scheduling, paid-Term safety review, flexible-Term dates, Google presentation problems, availability conflicts and administrator requests. Every action opens an inert preview and records nothing.
+
+Today’s examples cover upcoming, starting soon, reported absence, replacement, introductory and flexible classes. Expansion presents Student/schedule context, previous private notes and management previews. Private Teacher notes and Student-facing practice are separate sections with separate labels, controls and visual treatments. “Start Class” is navigation-only in the future contract and cannot imply attendance, delivery, completion or presence.
+
+## Account
+
+Account presents name, synthetic email and mandatory mobile/WhatsApp, timezone, Gregorian/Persian calendar preference, three Google states, recurring multi-block availability, recommended hours, booked classes, dated exceptions, payment/statement placeholders, non-competitive teaching statistics and security/help placeholders. There is no photo UI and no save, OAuth, provider, payment or credential behavior.
+
+## Onboarding
+
+The storyboard has seven future steps: welcome/password, details, Google, availability, readiness, guided tour and completion. Its readiness checklist covers starting classes, emergency contact/Meet knowledge, hardware readiness and music configuration. It creates no invitation, account or readiness authority.
+
+## Troubleshooting
+
+Help covers start/join problems, music audio, connection, Student password and the locked emergency procedure. “Set up Google Meet for music” is a placeholder guide only; no Google automation is present.
+
+## Fixture and unknown-state safety
+
+Fixtures are admin-only outside production, memory-only, use `example.invalid` or inert values, and never persist. Unknown state identifiers render an explicit unavailable/error state and suppress start, scheduling, payment and other privileged controls. Fixture state must never be used as a production fallback.
+
+## Accessibility and responsive behavior
+
+Native dialogs use `showModal()`. Unsupported browsers receive an explicit inline non-modal disclosure, with no false `aria-modal`; close and cancel restore opener focus. Semantic headings, labels, status regions, visible focus and RTL are included. Layout is mobile-first for 320, 375, 390 and 430 pixels, then expands at 768 and 1280 pixels. Color always accompanies state text.
+
+## Deferred integrations
+
+Deferred: Platform reads/commands, authenticated Teacher principal resolution, class links, intro decisions, absence acknowledgement, disruption reporting, schedule review/change, replacement commands, profile writes, availability authority, Google OAuth/API, notification delivery, finance/statements and account invitations.
+
+## Staging gates
+
+Before integration or release: real WordPress template execution, keyboard/screen-reader dialog checks, authenticated preview gate, screenshots at all target widths, RTL overflow, public/Student Portal regression, adapter contract review, privacy review and independent acceptance. This document does not mark the scaffold merged, deployed or production-ready.

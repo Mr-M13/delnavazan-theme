@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.0 — 2026-09-20 — Teacher Portal V1 scaffold candidate
+
+- Added isolated Teacher Portal Home, Account, onboarding and development-preview templates against synthetic display-ready fixtures.
+- Added attention, daily class, class-expansion, calendar, availability, account, finance-placeholder, statistics and troubleshooting presentations without domain mutations or provider calls.
+- Added fail-closed state rendering, structurally separate private notes and Student-facing practice, accessible progressive-enhancement dialogs and Teacher-Portal-only assets.
+- Added executable static, fixture-safety and dialog contract checks. Runtime WordPress and browser visual verification remain staging gates; this candidate is not merged or deployed.
+
 ## 0.5.0 — 2026-09-19 — Student Portal V1
 
 - Fast-forwarded independently approved correction candidate `bc891ae401aed0a58c1dea2c5d7587b3046b6773` to `main`; no production deployment occurred.

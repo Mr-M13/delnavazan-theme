@@ -20,10 +20,17 @@ const requiredFiles = [
   'assets/css/editor.css',
   'assets/js/navigation.js',
   'assets/js/portal.js',
+  'assets/css/teacher-portal.css',
+  'assets/js/teacher-portal.js',
   'inc/portal.php',
+  'inc/teacher-portal.php',
   'page-templates/student-portal-home.php',
   'page-templates/student-portal-account.php',
   'page-templates/student-portal-preview.php',
+  'page-templates/teacher-portal-home.php',
+  'page-templates/teacher-portal-account.php',
+  'page-templates/teacher-portal-onboarding.php',
+  'page-templates/teacher-portal-preview.php',
 ];
 
 for (const relative of requiredFiles) {
@@ -34,8 +41,8 @@ for (const relative of requiredFiles) {
 }
 
 const style = fs.readFileSync(path.join(theme, 'style.css'), 'utf8');
-if (!/^Version:\s*0\.5\.0$/m.test(style)) {
-	throw new Error('Student Portal V1 candidate must identify as Theme 0.5.0.');
+if (!/^Version:\s*0\.6\.0$/m.test(style)) {
+	throw new Error('Teacher Portal V1 candidate must identify as Theme 0.6.0.');
 }
 
 const themeJson = JSON.parse(fs.readFileSync(path.join(theme, 'theme.json'), 'utf8'));
@@ -169,5 +176,35 @@ for (const character of `${css}\n${portalCss}`.replace(/\/\*[\s\S]*?\*\//g, ''))
   if (braces < 0) throw new Error('CSS closes a block before it opens.');
 }
 if (braces !== 0) throw new Error(`CSS brace imbalance: ${braces}`);
+
+const teacherRuntime = fs.readFileSync(path.join(theme, 'inc/teacher-portal.php'), 'utf8');
+const teacherAttention = fs.readFileSync(path.join(theme, 'template-parts/teacher-portal/attention.php'), 'utf8');
+const teacherClasses = fs.readFileSync(path.join(theme, 'template-parts/teacher-portal/classes.php'), 'utf8');
+const teacherAccount = fs.readFileSync(path.join(theme, 'template-parts/teacher-portal/account.php'), 'utf8');
+const teacherJs = fs.readFileSync(path.join(theme, 'assets/js/teacher-portal.js'), 'utf8');
+for (const state of ['intro_request','student_absent','teacher_issue','replacement','term_review','flexible_term','google_problem','availability_conflict','admin_request']) {
+  if (!teacherRuntime.includes(`'state' => '${state}'`) || !teacherAttention.includes(`'${state}'`)) throw new Error(`Missing Teacher attention state: ${state}`);
+}
+for (const state of ['upcoming','starting_soon','student_absent','replacement','intro','flexible']) {
+  if (!teacherRuntime.includes(`'state' => '${state}'`) || !teacherClasses.includes(`'${state}'`)) throw new Error(`Missing Teacher class state: ${state}`);
+}
+if (!teacherAttention.includes("'unknown'") || !teacherClasses.includes("'unknown'")) throw new Error('Unknown Teacher states must render fail-closed.');
+if (!teacherClasses.includes('dzn-tp-private-note') || !teacherClasses.includes('dzn-tp-practice')) throw new Error('Private Teacher notes and Student practice must remain structurally distinct.');
+if (!teacherAccount.includes("array( 'not_connected', 'connected', 'needs_attention' )")) throw new Error('Google presentation states are incomplete.');
+if (!teacherRuntime.includes("'production' !== wp_get_environment_type()") || !teacherRuntime.includes("current_user_can( 'edit_theme_options' )")) throw new Error('Teacher fixtures must be gated outside production.');
+if (!teacherRuntime.includes("apply_filters( 'dzn_theme_teacher_portal_view_model'")) throw new Error('Teacher display-model adapter seam is missing.');
+if (!teacherRuntime.includes('if ( ! dzn_theme_is_teacher_portal_template() )')) throw new Error('Teacher assets must remain template-isolated.');
+if (/fetch\s*\(|XMLHttpRequest|\.submit\s*\(/.test(teacherJs)) throw new Error('Teacher presentation JavaScript must not make remote requests.');
+if (!teacherJs.includes("dznTpFallback = 'disclosure'") || teacherJs.includes("setAttribute('aria-modal'")) throw new Error('Teacher dialog fallback must be explicitly non-modal.');
+for (const destination of [/wa\.me/i,/meet\.google\.com/i,/https?:\/\/delnavazan/i,/@[a-z0-9.-]+\.(?:com|ir)\b/i]) {
+  if (destination.test(teacherRuntime)) throw new Error(`Teacher synthetic fixture contains a live-looking destination: ${destination}`);
+}
+let teacherBraces = 0;
+for (const character of fs.readFileSync(path.join(theme, 'assets/css/teacher-portal.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '')) {
+  if (character === '{') teacherBraces += 1;
+  if (character === '}') teacherBraces -= 1;
+  if (teacherBraces < 0) throw new Error('Teacher CSS closes a block before it opens.');
+}
+if (teacherBraces !== 0) throw new Error(`Teacher CSS brace imbalance: ${teacherBraces}`);
 
 console.log('Static theme validation passed.');
