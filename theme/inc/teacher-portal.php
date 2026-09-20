@@ -50,16 +50,21 @@ function dzn_theme_teacher_portal_teacher_valid( $teacher ) {
 function dzn_theme_teacher_portal_navigation_valid( $navigation, $screen ) {
 	if ( ! is_array( $navigation ) || count( $navigation ) < 3 ) { return false; }
 	$current = 0;
+	$seen = array();
 	foreach ( $navigation as $item ) {
-		if ( ! is_array( $item ) || ! dzn_theme_teacher_portal_text( $item['label'] ?? null ) || ! dzn_theme_teacher_portal_text( $item['url'] ?? null ) || ! is_bool( $item['current'] ?? null ) ) { return false; }
-		if ( $item['current'] ) { ++$current; }
+		if ( ! is_array( $item ) ) { return false; }
+		$item_screen = $item['screen'] ?? null;
+		if ( ! in_array( $item_screen, array( 'home', 'account', 'onboarding' ), true ) || isset( $seen[ $item_screen ] ) || ! dzn_theme_teacher_portal_text( $item['label'] ?? null ) || ! dzn_theme_teacher_portal_text( $item['url'] ?? null ) || ! is_bool( $item['current'] ?? null ) ) { return false; }
+		$seen[ $item_screen ] = true;
+		if ( $item['current'] ) { ++$current; if ( $item_screen !== $screen ) { return false; } }
 	}
-	return 1 === $current && in_array( $screen, array( 'home', 'account', 'onboarding' ), true );
+	return 1 === $current && count( $seen ) === 3;
 }
 function dzn_theme_teacher_portal_profile_valid( $profile ) {
 	if ( ! is_array( $profile ) ) { return false; }
 	foreach ( array( 'name', 'email', 'mobile', 'timezone', 'timezone_label' ) as $field ) { if ( ! dzn_theme_teacher_portal_text( $profile[ $field ] ?? null ) ) { return false; } }
-	return in_array( $profile['calendar'] ?? null, array( 'gregorian', 'persian' ), true );
+	return in_array( $profile['calendar'] ?? null, array( 'gregorian', 'persian' ), true )
+		&& in_array( $profile['timezone'], timezone_identifiers_list(), true );
 }
 function dzn_theme_teacher_portal_availability_valid( $availability, $exceptions ) {
 	if ( ! is_array( $availability ) || ! $availability || ! is_array( $exceptions ) ) { return false; }
@@ -98,9 +103,9 @@ function dzn_theme_teacher_portal_preview_allowed() {
 }
 function dzn_theme_teacher_portal_demo_model( $screen, $url ) {
 	$nav = array(
-		array( 'label' => 'خانهٔ مدرس', 'url' => add_query_arg( 'teacher-view', 'home', $url ), 'current' => 'home' === $screen ),
-		array( 'label' => 'حساب کاربری', 'url' => add_query_arg( 'teacher-view', 'account', $url ), 'current' => 'account' === $screen ),
-		array( 'label' => 'شروع همکاری', 'url' => add_query_arg( 'teacher-view', 'onboarding', $url ), 'current' => 'onboarding' === $screen ),
+		array( 'screen' => 'home', 'label' => 'خانهٔ مدرس', 'url' => add_query_arg( 'teacher-view', 'home', $url ), 'current' => 'home' === $screen ),
+		array( 'screen' => 'account', 'label' => 'حساب کاربری', 'url' => add_query_arg( 'teacher-view', 'account', $url ), 'current' => 'account' === $screen ),
+		array( 'screen' => 'onboarding', 'label' => 'شروع همکاری', 'url' => add_query_arg( 'teacher-view', 'onboarding', $url ), 'current' => 'onboarding' === $screen ),
 	);
 	$base = array( 'available' => true, 'screen' => $screen, 'is_demo' => true, 'teacher' => array( 'first_name' => 'سارا', 'full_name' => 'سارا نمونه' ), 'navigation' => $nav );
 	if ( 'account' === $screen ) {

@@ -85,6 +85,26 @@ foreach ( $bad_accounts as $index => $bad ) {
 	foreach ( array( 'اتصال Google', 'متصل', 'پرداخت‌شده', 'زمان‌های در دسترس', 'ذخیره در آینده' ) as $trusted ) { if ( false !== strpos( $html, $trusted ) ) { throw new RuntimeException( "Malformed Account {$index} exposed {$trusted}" ); } }
 }
 
+// IANA timezone validation: canonical PHP identifiers pass; malformed values fail closed.
+foreach ( array( 'Australia/Brisbane', 'Asia/Tehran' ) as $timezone ) { $candidate = $account; $candidate['profile']['timezone'] = $timezone; if ( ! dzn_theme_teacher_portal_validate_model( $candidate, 'account' ) ) { throw new RuntimeException( "Valid timezone {$timezone} failed" ); } }
+foreach ( array( 'definitely/not-a-timezone', '', array( 'Asia/Tehran' ) ) as $index => $timezone ) {
+	$candidate = $account; $candidate['profile']['timezone'] = $timezone;
+	if ( dzn_theme_teacher_portal_validate_model( $candidate, 'account' ) ) { throw new RuntimeException( "Invalid timezone {$index} passed" ); }
+	$html = render_shell( $candidate, 'account' );
+	if ( false === strpos( $html, 'اطلاعات مدرس در دسترس نیست' ) ) { throw new RuntimeException( "Invalid timezone {$index} did not render unavailable" ); }
+	foreach ( array( 'اتصال Google', 'پرداخت‌شده', 'زمان‌های در دسترس', 'ذخیره در آینده' ) as $trusted ) { if ( false !== strpos( $html, $trusted ) ) { throw new RuntimeException( "Invalid timezone {$index} exposed {$trusted}" ); } }
+}
+
+// Navigation must contain one stable entry per screen and current must match requested screen.
+foreach ( array( 'home' => $valid, 'account' => $account ) as $screen => $candidate ) { if ( ! dzn_theme_teacher_portal_validate_model( $candidate, $screen ) ) { throw new RuntimeException( "Valid {$screen} navigation failed" ); } }
+$nav_cases = array();
+$bad = $account; foreach ( $bad['navigation'] as &$item ) { $item['current'] = false; } unset( $item ); $nav_cases[] = $bad;
+$bad = $account; foreach ( $bad['navigation'] as &$item ) { $item['current'] = true; } unset( $item ); $nav_cases[] = $bad;
+$bad = $account; foreach ( $bad['navigation'] as &$item ) { $item['current'] = 'home' === $item['screen']; } unset( $item ); $nav_cases[] = $bad;
+$bad = $valid; foreach ( $bad['navigation'] as &$item ) { $item['current'] = 'account' === $item['screen']; } unset( $item ); $nav_cases[] = $bad;
+$bad = $account; unset( $bad['navigation'][0]['screen'] ); $nav_cases[] = $bad;
+foreach ( $nav_cases as $index => $candidate ) { $screen = 3 === $index ? 'home' : 'account'; if ( dzn_theme_teacher_portal_validate_model( $candidate, $screen ) ) { throw new RuntimeException( "Invalid navigation {$index} passed" ); } }
+
 // Complete Onboarding renders; bad step, identity, navigation and explicit unavailable do not.
 $onboarding = dzn_theme_teacher_portal_demo_model( 'onboarding', 'https://preview.example.invalid/teacher' );
 if ( ! dzn_theme_teacher_portal_validate_model( $onboarding, 'onboarding' ) || false === strpos( render_shell( $onboarding, 'onboarding' ), 'هفت گام آمادگی' ) ) { throw new RuntimeException( 'Valid Onboarding did not render' ); }

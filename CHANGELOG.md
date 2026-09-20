@@ -2,6 +2,8 @@
 
 ## 0.6.0 — 2026-09-20 — Teacher Portal V1 scaffold candidate
 
+- Recorded the round-2 independent re-review failure: a non-empty malformed timezone identifier passed Account validation, and navigation did not bind its current entry to the requested screen. Round 3 validates timezone values against PHP's canonical IANA identifier set and gives each navigation item a stable screen key whose sole current entry must match the requested screen.
+- Added behavioral coverage for valid Brisbane/Tehran timezones, invalid/empty/wrong-type timezones, zero/multiple/wrong-screen navigation currentness and missing navigation screen identity. The candidate remains unmerged and undeployed.
 - Recorded the round-1 independent re-review failure: Account validation was still shallow, Home collection members were outside the top-level contract and the class absence fixture used a mismatched identifier. Round 2 now validates the complete Account presentation shape, every Home attention/class/calendar member and the bounded Onboarding envelope.
 - Corrected the Student-absence presentation identifier to `student_absence` and added positive absence rendering plus adversarial Home, Account and Onboarding behavioral tests. Malformed Account data cannot expose Connected, Paid, availability, statistics or edit presentation. The candidate remains unmerged and undeployed.
 - Recorded independent-review failure TP-1/TP-2/TP-3 and correction round 1: explicitly unavailable, wrong-screen, empty and malformed top-level models now remain unavailable; recognized states alone no longer expose trusted actions; and bounded attention/class contracts require complete context plus explicit capability markers.
