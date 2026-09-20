@@ -185,7 +185,7 @@ const teacherJs = fs.readFileSync(path.join(theme, 'assets/js/teacher-portal.js'
 for (const state of ['intro_request','student_absence','teacher_disruption','replacement','paid_term_review','flexible_term_dates','google_problem','availability_conflict','admin_request']) {
   if (!teacherRuntime.includes(`'state' => '${state}'`) || !teacherRuntime.includes(`'${state}'`)) throw new Error(`Missing Teacher attention state: ${state}`);
 }
-for (const state of ['upcoming','starting_soon','student_absent','replacement','intro','flexible']) {
+for (const state of ['upcoming','starting_soon','student_absence','replacement','intro','flexible']) {
   if (!teacherRuntime.includes(`'state' => '${state}'`) || !teacherRuntime.includes(`'${state}'`)) throw new Error(`Missing Teacher class state: ${state}`);
 }
 if (!teacherAttention.includes("'unknown'") || !teacherClasses.includes("'unknown'") || !teacherAttention.includes('dzn_theme_teacher_portal_attention_valid') || !teacherClasses.includes('dzn_theme_teacher_portal_class_valid')) throw new Error('Unknown and malformed Teacher states must render fail-closed.');

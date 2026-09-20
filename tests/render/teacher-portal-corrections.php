@@ -16,10 +16,10 @@ function selected( $a, $b ) { if ( $a === $b ) { echo ' selected="selected"'; } 
 function get_template_part( $slug, $name = null, $args = array() ) { $file = DZN_TEST_THEME . $slug . '.php'; if ( is_file( $file ) ) { require $file; } }
 require DZN_TEST_THEME . 'inc/teacher-portal.php';
 
-function render_shell( $input ) {
+function render_shell( $input, $screen = 'home' ) {
 	global $filter_model; $filter_model = $input;
-	$model = dzn_theme_teacher_portal_view_model( 'home' );
-	ob_start(); dzn_theme_render_teacher_portal( 'home', $model ); return ob_get_clean();
+	$model = dzn_theme_teacher_portal_view_model( $screen );
+	ob_start(); dzn_theme_render_teacher_portal( $screen, $model ); return ob_get_clean();
 }
 function reject_privileged( $html, $label ) {
 	foreach ( array( 'شروع کلاس', 'انتخاب زمان', 'برنامه درست است', 'چیدن تاریخ‌ها', 'بررسی درخواست' ) as $action ) {
@@ -52,5 +52,49 @@ $attention = render_component( 'attention', 'items', $valid['attention'] );
 $classes = render_component( 'classes', 'items', $valid['classes'] );
 foreach ( array( array( $attention, 'بررسی درخواست' ), array( $attention, 'برنامه درست است' ), array( $classes, 'شروع کلاس' ), array( $classes, '>جزئیات<' ) ) as $expect ) {
 	if ( false === strpos( $expect[0], $expect[1] ) ) { throw new RuntimeException( "Valid fixture omitted {$expect[1]}" ); }
+}
+
+// Reviewer Home adversarial case: valid envelope with malformed collection contents.
+$bad_home = array( 'available' => true, 'screen' => 'home', 'teacher' => $valid['teacher'], 'navigation' => $valid['navigation'], 'attention' => array( array( 'state' => 'replacement' ) ), 'classes' => array( array( 'state' => 'upcoming' ) ), 'calendar' => array( array( 'state' => 'unknown' ) ) );
+if ( dzn_theme_teacher_portal_validate_model( $bad_home, 'home' ) ) { throw new RuntimeException( 'Reviewer malformed Home adversarial case passed validation' ); }
+$bad_home_html = render_shell( $bad_home ); reject_privileged( $bad_home_html, 'Reviewer malformed Home' );
+if ( false === strpos( $bad_home_html, 'اطلاعات مدرس در دسترس نیست' ) ) { throw new RuntimeException( 'Reviewer malformed Home did not render unavailable' ); }
+
+// The canonical Student-absence identifier renders useful context/details, never Start Class.
+$absence_item = array_values( array_filter( $valid['classes'], static fn( $item ) => 'student_absence' === $item['state'] ) )[0] ?? null;
+$absence_html = render_component( 'classes', 'items', array( $absence_item ) );
+foreach ( array( 'مهتاب', 'سنتور', 'غیبت اطلاع داده شده', '>جزئیات<' ) as $text ) { if ( false === strpos( $absence_html, $text ) ) { throw new RuntimeException( "Valid absence class omitted {$text}" ); } }
+if ( false !== strpos( $absence_html, 'شروع کلاس' ) ) { throw new RuntimeException( 'Valid Student-absence class exposed Start Class' ); }
+
+// Complete Account renders; all shallow, malformed and reviewer adversarial variants fail closed.
+$account = dzn_theme_teacher_portal_demo_model( 'account', 'https://preview.example.invalid/teacher' );
+if ( ! dzn_theme_teacher_portal_validate_model( $account, 'account' ) ) { throw new RuntimeException( 'Valid Account fixture failed validation' ); }
+$account_html = render_shell( $account, 'account' );
+foreach ( array( 'اطلاعات شخصی', 'نیازمند توجه', 'زمان‌های در دسترس', 'آمار تدریس' ) as $text ) { if ( false === strpos( $account_html, $text ) ) { throw new RuntimeException( "Valid Account omitted {$text}" ); } }
+$bad_accounts = array();
+foreach ( array( 'profile', 'availability', 'statistics', 'navigation' ) as $field ) { $bad = $account; $bad[ $field ] = array(); $bad_accounts[] = $bad; }
+$bad = $account; unset( $bad['profile']['mobile'] ); $bad_accounts[] = $bad;
+$bad = $account; $bad['availability'][0]['blocks'] = 'not-an-array'; $bad_accounts[] = $bad;
+$bad = $account; $bad['statistics']['upcoming'] = array(); $bad_accounts[] = $bad;
+$bad = $account; $bad['profile'] = 'wrong-type'; $bad_accounts[] = $bad;
+$bad_accounts[] = array( 'available'=>true, 'screen'=>'account', 'teacher'=>array( 'first_name'=>'سارا' ), 'navigation'=>array(), 'profile'=>array(), 'availability'=>array(), 'statistics'=>array(), 'google_state'=>'connected', 'payment_state'=>'paid' );
+foreach ( $bad_accounts as $index => $bad ) {
+	if ( dzn_theme_teacher_portal_validate_model( $bad, 'account' ) ) { throw new RuntimeException( "Malformed Account {$index} passed validation" ); }
+	$html = render_shell( $bad, 'account' );
+	if ( false === strpos( $html, 'اطلاعات مدرس در دسترس نیست' ) ) { throw new RuntimeException( "Malformed Account {$index} did not render unavailable" ); }
+	foreach ( array( 'اتصال Google', 'متصل', 'پرداخت‌شده', 'زمان‌های در دسترس', 'ذخیره در آینده' ) as $trusted ) { if ( false !== strpos( $html, $trusted ) ) { throw new RuntimeException( "Malformed Account {$index} exposed {$trusted}" ); } }
+}
+
+// Complete Onboarding renders; bad step, identity, navigation and explicit unavailable do not.
+$onboarding = dzn_theme_teacher_portal_demo_model( 'onboarding', 'https://preview.example.invalid/teacher' );
+if ( ! dzn_theme_teacher_portal_validate_model( $onboarding, 'onboarding' ) || false === strpos( render_shell( $onboarding, 'onboarding' ), 'هفت گام آمادگی' ) ) { throw new RuntimeException( 'Valid Onboarding did not render' ); }
+$bad_onboarding = array();
+foreach ( array( 0, 8, '4' ) as $step ) { $bad = $onboarding; $bad['current_step'] = $step; $bad_onboarding[] = $bad; }
+$bad = $onboarding; $bad['teacher'] = array(); $bad_onboarding[] = $bad;
+$bad = $onboarding; $bad['navigation'] = array(); $bad_onboarding[] = $bad;
+$bad = $onboarding; $bad['available'] = false; $bad_onboarding[] = $bad;
+foreach ( $bad_onboarding as $index => $bad ) {
+	$html = render_shell( $bad, 'onboarding' );
+	if ( false === strpos( $html, 'اطلاعات مدرس در دسترس نیست' ) || false !== strpos( $html, 'ادامه در آینده' ) ) { throw new RuntimeException( "Malformed Onboarding {$index} did not fail closed" ); }
 }
 echo "Teacher Portal correction render tests passed.\n";
