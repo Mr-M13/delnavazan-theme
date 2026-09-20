@@ -4,6 +4,8 @@
 
 Teacher Portal V1 is Persian-first Theme presentation against synthetic, display-ready `TeacherPortalReadModel` fixtures. The Theme does not query Platform tables and owns no scheduling, attendance, delivery, payment, absence, replacement, enrolment, Term, Lesson, availability, Google-connection or notification truth. A future adapter supplies the same array shape through `dzn_theme_teacher_portal_view_model`; templates only escape, arrange and progressively disclose it.
 
+Correction round 1 follows independent-review findings TP-1, TP-2 and TP-3. The adapter result must explicitly carry `available=true`, match the requested screen and satisfy that screen's bounded presentation structure. Null, false, empty, explicitly unavailable, wrong-screen and malformed models all render unavailable. Recognized state names never authorize controls by themselves: attention and class items require non-empty references/context plus explicit action/capability markers, including authorized-replacement, schedule-review and flexible-Lesson-entitlement markers. Unknown and malformed recognized states share one unavailable path.
+
 ## Home hierarchy
 
 Home renders an optional academy/technical/reminder announcement, nine “Needs Your Attention” scenarios, chronological classes, a calendar/list preview and troubleshooting. Attention cards cover intro requests, reported Student absence, Teacher disruption, authorised replacement scheduling, paid-Term safety review, flexible-Term dates, Google presentation problems, availability conflicts and administrator requests. Every action opens an inert preview and records nothing.
@@ -25,6 +27,8 @@ Help covers start/join problems, music audio, connection, Student password and t
 ## Fixture and unknown-state safety
 
 Fixtures are admin-only outside production, memory-only, use `example.invalid` or inert values, and never persist. Unknown state identifiers render an explicit unavailable/error state and suppress start, scheduling, payment and other privileged controls. Fixture state must never be used as a production fallback.
+
+Dependency-free PHP behavioral tests render the actual shell and components. They cover null/false/empty/explicitly unavailable and malformed top-level models, recognized-but-incomplete replacement, intro, paid-Term, flexible-Term and class items, and positive rendering of the complete synthetic fixture. Static source checks remain supplementary rather than substitutes for rendered-output assertions.
 
 ## Accessibility and responsive behavior
 

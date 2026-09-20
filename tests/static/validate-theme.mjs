@@ -182,13 +182,13 @@ const teacherAttention = fs.readFileSync(path.join(theme, 'template-parts/teache
 const teacherClasses = fs.readFileSync(path.join(theme, 'template-parts/teacher-portal/classes.php'), 'utf8');
 const teacherAccount = fs.readFileSync(path.join(theme, 'template-parts/teacher-portal/account.php'), 'utf8');
 const teacherJs = fs.readFileSync(path.join(theme, 'assets/js/teacher-portal.js'), 'utf8');
-for (const state of ['intro_request','student_absent','teacher_issue','replacement','term_review','flexible_term','google_problem','availability_conflict','admin_request']) {
-  if (!teacherRuntime.includes(`'state' => '${state}'`) || !teacherAttention.includes(`'${state}'`)) throw new Error(`Missing Teacher attention state: ${state}`);
+for (const state of ['intro_request','student_absence','teacher_disruption','replacement','paid_term_review','flexible_term_dates','google_problem','availability_conflict','admin_request']) {
+  if (!teacherRuntime.includes(`'state' => '${state}'`) || !teacherRuntime.includes(`'${state}'`)) throw new Error(`Missing Teacher attention state: ${state}`);
 }
 for (const state of ['upcoming','starting_soon','student_absent','replacement','intro','flexible']) {
-  if (!teacherRuntime.includes(`'state' => '${state}'`) || !teacherClasses.includes(`'${state}'`)) throw new Error(`Missing Teacher class state: ${state}`);
+  if (!teacherRuntime.includes(`'state' => '${state}'`) || !teacherRuntime.includes(`'${state}'`)) throw new Error(`Missing Teacher class state: ${state}`);
 }
-if (!teacherAttention.includes("'unknown'") || !teacherClasses.includes("'unknown'")) throw new Error('Unknown Teacher states must render fail-closed.');
+if (!teacherAttention.includes("'unknown'") || !teacherClasses.includes("'unknown'") || !teacherAttention.includes('dzn_theme_teacher_portal_attention_valid') || !teacherClasses.includes('dzn_theme_teacher_portal_class_valid')) throw new Error('Unknown and malformed Teacher states must render fail-closed.');
 if (!teacherClasses.includes('dzn-tp-private-note') || !teacherClasses.includes('dzn-tp-practice')) throw new Error('Private Teacher notes and Student practice must remain structurally distinct.');
 if (!teacherAccount.includes("array( 'not_connected', 'connected', 'needs_attention' )")) throw new Error('Google presentation states are incomplete.');
 if (!teacherRuntime.includes("'production' !== wp_get_environment_type()") || !teacherRuntime.includes("current_user_can( 'edit_theme_options' )")) throw new Error('Teacher fixtures must be gated outside production.');

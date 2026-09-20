@@ -2,6 +2,8 @@
 
 ## 0.6.0 — 2026-09-20 — Teacher Portal V1 scaffold candidate
 
+- Recorded independent-review failure TP-1/TP-2/TP-3 and correction round 1: explicitly unavailable, wrong-screen, empty and malformed top-level models now remain unavailable; recognized states alone no longer expose trusted actions; and bounded attention/class contracts require complete context plus explicit capability markers.
+- Added behavioral PHP rendering coverage for unavailable and malformed models, malformed recognized replacement/intro/Term/class states, suppressed privileged controls and valid-fixture positive rendering. The candidate remains unmerged and undeployed.
 - Added isolated Teacher Portal Home, Account, onboarding and development-preview templates against synthetic display-ready fixtures.
 - Added attention, daily class, class-expansion, calendar, availability, account, finance-placeholder, statistics and troubleshooting presentations without domain mutations or provider calls.
 - Added fail-closed state rendering, structurally separate private notes and Student-facing practice, accessible progressive-enhancement dialogs and Teacher-Portal-only assets.
