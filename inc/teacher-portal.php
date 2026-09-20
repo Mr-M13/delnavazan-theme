@@ -22,7 +22,34 @@ function dzn_theme_teacher_portal_view_model( $screen ) {
 	$allowed = array( 'home', 'account', 'onboarding' );
 	$screen = in_array( $screen, $allowed, true ) ? $screen : 'home';
 	$model = apply_filters( 'dzn_theme_teacher_portal_view_model', null, $screen, get_queried_object_id() );
-	return is_array( $model ) ? array_merge( $model, array( 'available' => true, 'screen' => $screen ) ) : array( 'available' => false, 'screen' => $screen );
+	return dzn_theme_teacher_portal_validate_model( $model, $screen ) ? $model : array( 'available' => false, 'screen' => $screen );
+}
+/** Validate only the display contract; this establishes no domain truth. */
+function dzn_theme_teacher_portal_validate_model( $model, $screen ) {
+	if ( ! is_array( $model ) || true !== ( $model['available'] ?? false ) || $screen !== ( $model['screen'] ?? null ) ) { return false; }
+	if ( ! is_array( $model['teacher'] ?? null ) || ! dzn_theme_teacher_portal_text( $model['teacher']['first_name'] ?? null ) || ! is_array( $model['navigation'] ?? null ) ) { return false; }
+	if ( 'home' === $screen ) { return is_array( $model['attention'] ?? null ) && is_array( $model['classes'] ?? null ) && is_array( $model['calendar'] ?? null ); }
+	if ( 'account' === $screen ) {
+		return is_array( $model['profile'] ?? null ) && is_array( $model['availability'] ?? null ) && is_array( $model['statistics'] ?? null )
+			&& in_array( $model['google_state'] ?? null, array( 'not_connected', 'connected', 'needs_attention' ), true )
+			&& in_array( $model['payment_state'] ?? null, array( 'pending_verification', 'confirmed', 'paid' ), true );
+	}
+	return 'onboarding' === $screen && is_int( $model['current_step'] ?? null ) && $model['current_step'] >= 1 && $model['current_step'] <= 7;
+}
+function dzn_theme_teacher_portal_text( $value ) { return is_string( $value ) && '' !== trim( $value ); }
+function dzn_theme_teacher_portal_attention_valid( $item ) {
+	$states = array( 'intro_request', 'student_absence', 'teacher_disruption', 'replacement', 'paid_term_review', 'flexible_term_dates', 'google_problem', 'availability_conflict', 'admin_request' );
+	if ( ! is_array( $item ) || ! in_array( $item['state'] ?? null, $states, true ) ) { return false; }
+	foreach ( array( 'ref', 'title', 'context', 'message', 'due', 'primary' ) as $field ) { if ( ! dzn_theme_teacher_portal_text( $item[ $field ] ?? null ) ) { return false; } }
+	if ( true !== ( $item['action_available'] ?? false ) ) { return false; }
+	$markers = array( 'replacement' => 'authorized_replacement', 'paid_term_review' => 'schedule_review_authorized', 'flexible_term_dates' => 'lesson_entitlement_authorized' );
+	return ! isset( $markers[ $item['state'] ] ) || true === ( $item[ $markers[ $item['state'] ] ] ?? false );
+}
+function dzn_theme_teacher_portal_class_valid( $item ) {
+	$states = array( 'upcoming', 'starting_soon', 'student_absence', 'replacement', 'intro', 'flexible' );
+	if ( ! is_array( $item ) || ! in_array( $item['state'] ?? null, $states, true ) ) { return false; }
+	foreach ( array( 'ref', 'time', 'student', 'course', 'progress', 'status', 'student_summary', 'schedule_summary', 'previous_private_note' ) as $field ) { if ( ! dzn_theme_teacher_portal_text( $item[ $field ] ?? null ) ) { return false; } }
+	return is_bool( $item['start_available'] ?? null ) && is_bool( $item['details_available'] ?? null );
 }
 function dzn_theme_teacher_portal_preview_allowed() {
 	return 'production' !== wp_get_environment_type() && is_user_logged_in() && current_user_can( 'edit_theme_options' );
@@ -33,7 +60,7 @@ function dzn_theme_teacher_portal_demo_model( $screen, $url ) {
 		array( 'label' => 'حساب کاربری', 'url' => add_query_arg( 'teacher-view', 'account', $url ), 'current' => 'account' === $screen ),
 		array( 'label' => 'شروع همکاری', 'url' => add_query_arg( 'teacher-view', 'onboarding', $url ), 'current' => 'onboarding' === $screen ),
 	);
-	$base = array( 'is_demo' => true, 'teacher' => array( 'first_name' => 'سارا', 'full_name' => 'سارا نمونه' ), 'navigation' => $nav );
+	$base = array( 'available' => true, 'screen' => $screen, 'is_demo' => true, 'teacher' => array( 'first_name' => 'سارا', 'full_name' => 'سارا نمونه' ), 'navigation' => $nav );
 	if ( 'account' === $screen ) {
 		return array_merge( $base, array(
 			'profile' => array( 'name' => 'سارا نمونه', 'email' => 'teacher@example.invalid', 'mobile' => '+00 000 000 000', 'timezone' => 'Asia/Tehran', 'timezone_label' => 'زمان تهران', 'calendar' => 'persian' ),
@@ -50,23 +77,23 @@ function dzn_theme_teacher_portal_demo_model( $screen, $url ) {
 	}
 	if ( 'onboarding' === $screen ) { return array_merge( $base, array( 'current_step' => 4 ) ); }
 	$attention = array(
-		array( 'state' => 'intro_request', 'title' => 'درخواست تازهٔ کلاس آشنایی', 'context' => 'نیلا · سه‌تار', 'message' => 'شنبه ۲۸ شهریور، ۱۸:۳۰ زمان شما · ۱۱:۰۰ زمان هنرجو', 'due' => 'پاسخ تا ۱۸ ساعت دیگر', 'primary' => 'بررسی درخواست', 'secondary' => 'زمان‌های جایگزین' ),
-		array( 'state' => 'student_absent', 'title' => 'هنرجو غیبت را اطلاع داده', 'context' => 'آرین · پیانو · امروز ۱۷:۰۰', 'message' => 'این اطلاع به‌تنهایی وضعیت حضور یا جایگزینی را تعیین نمی‌کند.', 'due' => 'اطلاع تازه', 'primary' => 'تأیید مشاهده' ),
-		array( 'state' => 'teacher_issue', 'title' => 'نمی‌توانید در کلاس حاضر شوید؟', 'context' => 'مهسا · سنتور · فردا ۱۹:۰۰', 'message' => 'مشکل را گزارش کنید؛ این پیش‌نمایش کلاس را لغو نمی‌کند.', 'due' => 'پیش از شروع کلاس', 'primary' => 'گزارش مشکل' ),
-		array( 'state' => 'replacement', 'title' => 'جلسهٔ جبرانی مجاز نیاز به زمان دارد', 'context' => 'کیان · تار', 'message' => 'مجوز جایگزینی از مدل نمایشی دریافت شده؛ پوسته آن را ایجاد نمی‌کند.', 'due' => 'تا ۵ مهر', 'primary' => 'انتخاب زمان' ),
-		array( 'state' => 'term_review', 'title' => 'برنامهٔ ترم پرداخت‌شده آمادهٔ بازبینی است', 'context' => 'رها · کمانچه · ۱۲ جلسه', 'message' => 'بازبینی ایمنی برنامه است، نه پذیرش دوبارهٔ هنرجو.', 'due' => 'شروع: ۳ مهر', 'primary' => 'برنامه درست است', 'secondary' => 'اصلاح برنامه' ),
-		array( 'state' => 'flexible_term', 'title' => '۱۲ جلسه مجاز؛ تاریخ‌ها هنوز تعیین نشده‌اند', 'context' => 'سام · تنبک', 'message' => 'جلسه‌های ترم انعطاف‌پذیر به هماهنگی تاریخ نیاز دارند.', 'due' => 'پیش از شروع ترم', 'primary' => 'چیدن تاریخ‌ها' ),
-		array( 'state' => 'google_problem', 'title' => 'اتصال Google نیاز به توجه دارد', 'context' => 'حساب نمایشی', 'message' => 'هیچ اتصال واقعی در این پیش‌نمایش انجام نمی‌شود.', 'due' => 'مشکل فنی', 'primary' => 'مشاهدهٔ راهنما' ),
-		array( 'state' => 'availability_conflict', 'title' => 'تداخل با زمان در دسترس', 'context' => 'پنجشنبه ۱۸:۰۰', 'message' => 'یک کلاس نمایشی خارج از بازهٔ ترجیحی دیده می‌شود.', 'due' => 'بررسی تا فردا', 'primary' => 'بررسی تداخل' ),
-		array( 'state' => 'admin_request', 'title' => 'درخواست مدیر آموزشگاه', 'context' => 'تکمیل اطلاعات حساب', 'message' => 'منطقهٔ زمانی خود را بازبینی کنید.', 'due' => 'تا ۲ مهر', 'primary' => 'باز کردن حساب' ),
+		array( 'ref'=>'ATT-01','action_available'=>true,'state' => 'intro_request', 'title' => 'درخواست تازهٔ کلاس آشنایی', 'context' => 'نیلا · سه‌تار', 'message' => 'شنبه ۲۸ شهریور، ۱۸:۳۰ زمان شما · ۱۱:۰۰ زمان هنرجو', 'due' => 'پاسخ تا ۱۸ ساعت دیگر', 'primary' => 'بررسی درخواست', 'secondary' => 'زمان‌های جایگزین' ),
+		array( 'ref'=>'ATT-02','action_available'=>true,'state' => 'student_absence', 'title' => 'هنرجو غیبت را اطلاع داده', 'context' => 'آرین · پیانو · امروز ۱۷:۰۰', 'message' => 'این اطلاع به‌تنهایی وضعیت حضور یا جایگزینی را تعیین نمی‌کند.', 'due' => 'اطلاع تازه', 'primary' => 'تأیید مشاهده' ),
+		array( 'ref'=>'ATT-03','action_available'=>true,'state' => 'teacher_disruption', 'title' => 'نمی‌توانید در کلاس حاضر شوید؟', 'context' => 'مهسا · سنتور · فردا ۱۹:۰۰', 'message' => 'مشکل را گزارش کنید؛ این پیش‌نمایش کلاس را لغو نمی‌کند.', 'due' => 'پیش از شروع کلاس', 'primary' => 'گزارش مشکل' ),
+		array( 'ref'=>'ATT-04','action_available'=>true,'authorized_replacement'=>true,'state' => 'replacement', 'title' => 'جلسهٔ جبرانی مجاز نیاز به زمان دارد', 'context' => 'کیان · تار', 'message' => 'مجوز جایگزینی از مدل نمایشی دریافت شده؛ پوسته آن را ایجاد نمی‌کند.', 'due' => 'تا ۵ مهر', 'primary' => 'انتخاب زمان' ),
+		array( 'ref'=>'ATT-05','action_available'=>true,'schedule_review_authorized'=>true,'state' => 'paid_term_review', 'title' => 'برنامهٔ ترم پرداخت‌شده آمادهٔ بازبینی است', 'context' => 'رها · کمانچه · ۱۲ جلسه', 'message' => 'بازبینی ایمنی برنامه است، نه پذیرش دوبارهٔ هنرجو.', 'due' => 'شروع: ۳ مهر', 'primary' => 'برنامه درست است', 'secondary' => 'اصلاح برنامه' ),
+		array( 'ref'=>'ATT-06','action_available'=>true,'lesson_entitlement_authorized'=>true,'state' => 'flexible_term_dates', 'title' => '۱۲ جلسه مجاز؛ تاریخ‌ها هنوز تعیین نشده‌اند', 'context' => 'سام · تنبک', 'message' => 'جلسه‌های ترم انعطاف‌پذیر به هماهنگی تاریخ نیاز دارند.', 'due' => 'پیش از شروع ترم', 'primary' => 'چیدن تاریخ‌ها' ),
+		array( 'ref'=>'ATT-07','action_available'=>true,'state' => 'google_problem', 'title' => 'اتصال Google نیاز به توجه دارد', 'context' => 'حساب نمایشی', 'message' => 'هیچ اتصال واقعی در این پیش‌نمایش انجام نمی‌شود.', 'due' => 'مشکل فنی', 'primary' => 'مشاهدهٔ راهنما' ),
+		array( 'ref'=>'ATT-08','action_available'=>true,'state' => 'availability_conflict', 'title' => 'تداخل با زمان در دسترس', 'context' => 'پنجشنبه ۱۸:۰۰', 'message' => 'یک کلاس نمایشی خارج از بازهٔ ترجیحی دیده می‌شود.', 'due' => 'بررسی تا فردا', 'primary' => 'بررسی تداخل' ),
+		array( 'ref'=>'ATT-09','action_available'=>true,'state' => 'admin_request', 'title' => 'درخواست مدیر آموزشگاه', 'context' => 'تکمیل اطلاعات حساب', 'message' => 'منطقهٔ زمانی خود را بازبینی کنید.', 'due' => 'تا ۲ مهر', 'primary' => 'باز کردن حساب' ),
 	);
 	$classes = array(
-		array( 'state' => 'upcoming', 'time' => '۱۰:۰۰', 'student' => 'هلیا', 'course' => 'سه‌تار', 'progress' => 'ترم ۱ · جلسهٔ ۲/۱۲', 'status' => 'پیش رو' ),
-		array( 'state' => 'starting_soon', 'time' => '۱۱:۳۰', 'student' => 'پارسا', 'course' => 'پیانو', 'progress' => 'ترم ۲ · جلسهٔ ۷/۱۲', 'status' => 'به‌زودی شروع می‌شود' ),
-		array( 'state' => 'student_absent', 'time' => '۱۴:۰۰', 'student' => 'مهتاب', 'course' => 'سنتور', 'progress' => 'ترم ۱ · جلسهٔ ۵/۱۲', 'status' => 'غیبت اطلاع داده شده' ),
-		array( 'state' => 'replacement', 'time' => '۱۶:۳۰', 'student' => 'نوید', 'course' => 'تار', 'progress' => 'جلسهٔ جایگزین مجاز', 'status' => 'جایگزین' ),
-		array( 'state' => 'intro', 'time' => '۱۸:۰۰', 'student' => 'ساغر', 'course' => 'کمانچه', 'progress' => 'کلاس آشنایی', 'status' => 'آشنایی' ),
-		array( 'state' => 'flexible', 'time' => '۲۰:۰۰', 'student' => 'آوا', 'course' => 'دف', 'progress' => 'ترم انعطاف‌پذیر', 'status' => 'زمان هماهنگ‌شده' ),
+		array( 'ref'=>'CLS-01','start_available'=>true,'details_available'=>true,'student_summary'=>'هنرجوی ترم نخست','schedule_summary'=>'امروز ۱۰:۰۰، زمان تهران','previous_private_note'=>'تمرکز روی ریتم آرام','state' => 'upcoming', 'time' => '۱۰:۰۰', 'student' => 'هلیا', 'course' => 'سه‌تار', 'progress' => 'ترم ۱ · جلسهٔ ۲/۱۲', 'status' => 'پیش رو' ),
+		array( 'ref'=>'CLS-02','start_available'=>true,'details_available'=>true,'student_summary'=>'خلاصهٔ هنرجوی نمایشی','schedule_summary'=>'زمان قطعی نمایشی در منطقهٔ زمانی مدرس','previous_private_note'=>'تمرکز روی ریتم آرام','state' => 'starting_soon', 'time' => '۱۱:۳۰', 'student' => 'پارسا', 'course' => 'پیانو', 'progress' => 'ترم ۲ · جلسهٔ ۷/۱۲', 'status' => 'به‌زودی شروع می‌شود' ),
+		array( 'ref'=>'CLS-03','start_available'=>false,'details_available'=>true,'student_summary'=>'خلاصهٔ هنرجوی نمایشی','schedule_summary'=>'زمان قطعی نمایشی در منطقهٔ زمانی مدرس','previous_private_note'=>'تمرکز روی ریتم آرام','state' => 'student_absent', 'time' => '۱۴:۰۰', 'student' => 'مهتاب', 'course' => 'سنتور', 'progress' => 'ترم ۱ · جلسهٔ ۵/۱۲', 'status' => 'غیبت اطلاع داده شده' ),
+		array( 'ref'=>'CLS-04','start_available'=>true,'details_available'=>true,'student_summary'=>'خلاصهٔ هنرجوی نمایشی','schedule_summary'=>'زمان قطعی نمایشی در منطقهٔ زمانی مدرس','previous_private_note'=>'تمرکز روی ریتم آرام','state' => 'replacement', 'time' => '۱۶:۳۰', 'student' => 'نوید', 'course' => 'تار', 'progress' => 'جلسهٔ جایگزین مجاز', 'status' => 'جایگزین' ),
+		array( 'ref'=>'CLS-05','start_available'=>true,'details_available'=>true,'student_summary'=>'خلاصهٔ هنرجوی نمایشی','schedule_summary'=>'زمان قطعی نمایشی در منطقهٔ زمانی مدرس','previous_private_note'=>'تمرکز روی ریتم آرام','state' => 'intro', 'time' => '۱۸:۰۰', 'student' => 'ساغر', 'course' => 'کمانچه', 'progress' => 'کلاس آشنایی', 'status' => 'آشنایی' ),
+		array( 'ref'=>'CLS-06','start_available'=>true,'details_available'=>true,'student_summary'=>'خلاصهٔ هنرجوی نمایشی','schedule_summary'=>'زمان قطعی نمایشی در منطقهٔ زمانی مدرس','previous_private_note'=>'تمرکز روی ریتم آرام','state' => 'flexible', 'time' => '۲۰:۰۰', 'student' => 'آوا', 'course' => 'دف', 'progress' => 'ترم انعطاف‌پذیر', 'status' => 'زمان هماهنگ‌شده' ),
 	);
 	return array_merge( $base, array(
 		'announcement' => array( 'state' => 'technical', 'title' => 'یادآوری فنی', 'message' => 'پیش از نخستین کلاس، صدا و تنظیمات موسیقی را بررسی کنید.' ),
