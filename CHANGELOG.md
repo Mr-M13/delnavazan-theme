@@ -1,7 +1,9 @@
 # Changelog
 
-## 0.6.0 — 2026-09-20 — Teacher Portal V1 scaffold candidate
+## 0.6.0 — 2026-09-20 — Teacher Portal V1
 
+- Fast-forwarded independently approved implementation candidate `6ce6718c3038faf892542d033b73d021800d28ee` (tree `8c27144abd3a84d9e8037f3cf92abb7f962742f0`) to `main` and closed Teacher Portal V1 repository work. No deployment occurred; live WordPress, browser, responsive and RTL verification remain staging gates.
+- Student Portal behavior and Platform remained unchanged during merge and closeout.
 - Recorded the round-2 independent re-review failure: a non-empty malformed timezone identifier passed Account validation, and navigation did not bind its current entry to the requested screen. Round 3 validates timezone values against PHP's canonical IANA identifier set and gives each navigation item a stable screen key whose sole current entry must match the requested screen.
 - Added behavioral coverage for valid Brisbane/Tehran timezones, invalid/empty/wrong-type timezones, zero/multiple/wrong-screen navigation currentness and missing navigation screen identity. The candidate remains unmerged and undeployed.
 - Recorded the round-1 independent re-review failure: Account validation was still shallow, Home collection members were outside the top-level contract and the class absence fixture used a mismatched identifier. Round 2 now validates the complete Account presentation shape, every Home attention/class/calendar member and the bounded Onboarding envelope.

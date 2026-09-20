@@ -1,4 +1,8 @@
-# Teacher Portal V1 — presentation scaffold candidate
+# Teacher Portal V1 — merged presentation scaffold
+
+## Merge closeout
+
+Teacher Portal V1 passed final independent re-review after correction round 3. Approved implementation candidate `6ce6718c3038faf892542d033b73d021800d28ee`, tree `8c27144abd3a84d9e8037f3cf92abb7f962742f0`, was fast-forward merged to `main` as Theme 0.6.0. Repository implementation work is merged and closed. No deployment, production, NIU or Platform change occurred; Student Portal behavior is unchanged. Live WordPress execution, browser interaction, responsive/RTL visual verification and screen-reader checks remain staging gates and are not claimed here.
 
 ## Scope and boundary
 
