@@ -279,4 +279,76 @@ $GLOBALS['dzn_test_is_singular']    = false;
 dzn_test_assert( false === dzn_theme_content_page_is_document_response(), 'Non-singular requests must not be document responses.' );
 $GLOBALS['dzn_test_is_singular'] = true;
 
+
+// ---------------------------------------------------------------------------
+// Correction round 3 — ordered tokenizer: mismatched closes, stray closes, unclosed opens.
+// ---------------------------------------------------------------------------
+
+$untouched = static function ( string $html, string $label ) {
+	$result = dzn_theme_content_page_anchor_content( $html );
+	dzn_test_assert( array( 'content' => $html, 'sections' => array() ) === $result, $label . ' must stay byte-stable with no outline entries' );
+};
+
+// 1. Reverse crossing: an H2 closed by an H3 and an H3 closed by an H2.
+$untouched( '<h2>First</h3><h3>Second</h2>', 'A reverse-crossing heading pair' );
+$crossing_tokens = dzn_theme_content_page_heading_tokens( '<h2>First</h3><h3>Second</h2>' );
+dzn_test_assert( array() === $crossing_tokens['pairs'], 'A reverse-crossing pair must produce no heading pairs.' );
+dzn_test_assert( 2 === count( $crossing_tokens['malformed'] ), 'Both mismatched closes must be recorded as malformed regions.' );
+
+// 2. A malformed opening must not consume a later valid heading's closing tag.
+$recovery = dzn_theme_content_page_anchor_content( '<h2>Broken</h3><h2>Valid neighbour</h2>' );
+dzn_test_assert( 1 === count( $recovery['sections'] ), 'Recovery must anchor the valid neighbour: ' . json_encode( array_column( $recovery['sections'], 'anchor' ) ) );
+dzn_test_assert( 'valid-neighbour' === $recovery['sections'][0]['anchor'], 'The valid neighbour must keep its derived anchor.' );
+dzn_test_assert( false !== strpos( $recovery['content'], '<h2>Broken</h3>' ), 'The malformed opening must stay untouched.' );
+dzn_test_assert( false !== strpos( $recovery['content'], '<h2 id="valid-neighbour">Valid neighbour</h2>' ), 'The valid neighbour must be anchored after the malformed region.' );
+
+// 3. The mirrored case: H3 broken by an H2 close, followed by a valid H3.
+$recovery_h3 = dzn_theme_content_page_anchor_content( '<h3>Broken</h2><h3>Valid neighbour</h3>' );
+dzn_test_assert( 1 === count( $recovery_h3['sections'] ) && 'valid-neighbour' === $recovery_h3['sections'][0]['anchor'], 'Mirrored recovery must anchor the valid H3.' );
+dzn_test_assert( false !== strpos( $recovery_h3['content'], '<h3>Broken</h2>' ), 'The mirrored malformed opening must stay untouched.' );
+
+// 4/5. Nested headings in both directions stay byte-stable.
+$untouched( '<h2>Outer <h3>Inner</h3> tail</h2>', 'Nested H2/H3' );
+$untouched( '<h3>Outer <h2>Inner</h2> tail</h3>', 'Nested H3/H2' );
+
+// 6. Same-level nesting for both levels.
+$untouched( '<h2>First <h2>Second</h2> tail</h2>', 'Same-level nested H2' );
+$untouched( '<h3>First <h3>Second</h3> tail</h3>', 'Same-level nested H3' );
+
+// 7. Stray closing tags before and between valid headings must not poison the valid ones.
+$stray = dzn_theme_content_page_anchor_content( '</h2><h2>اول</h2></h3><h2>دوم</h2>' );
+dzn_test_assert( 2 === count( $stray['sections'] ), 'Stray closing tags must not discard valid headings: ' . count( $stray['sections'] ) );
+dzn_test_assert( array( 'اول', 'دوم' ) === array_column( $stray['sections'], 'anchor' ), 'Stray closes must leave the valid anchors intact.' );
+dzn_test_assert( false !== strpos( $stray['content'], '</h2><h2 id="اول">' ), 'The stray closing tag must stay untouched.' );
+
+// 8. An unclosed heading followed by another heading is ambiguous for both.
+$unclosed_followed = dzn_theme_content_page_anchor_content( '<h2>بدون بستن<p>متن</p><h2>بعدی</h2>' );
+dzn_test_assert( 0 === count( $unclosed_followed['sections'] ), 'An unclosed heading must not produce outline entries, nor its nested neighbour.' );
+dzn_test_assert( false !== strpos( $unclosed_followed['content'], '<h2>بدون بستن' ), 'The unclosed heading must stay untouched.' );
+dzn_test_assert( false !== strpos( $unclosed_followed['content'], '<h2>بعدی</h2>' ), 'The ambiguous neighbour must stay untouched.' );
+
+// 9. A malformed region followed by several valid Persian headings.
+$recovered_many = dzn_theme_content_page_anchor_content(
+	'<h2>First</h3><h3>Second</h2><h2>بخش اول</h2><p>متن</p><h3>زیربخش</h3><p>متن</p><h2>بخش دوم</h2>'
+);
+dzn_test_assert( array( 'بخش-اول', 'زیربخش', 'بخش-دوم' ) === array_column( $recovered_many['sections'], 'anchor' ), 'Every valid heading after a malformed region must be anchored: ' . json_encode( array_column( $recovered_many['sections'], 'anchor' ) ) );
+dzn_test_assert( false !== strpos( $recovered_many['content'], '<h2>First</h3><h3>Second</h2>' ), 'The malformed region must stay byte-stable.' );
+
+// 10. Nested inline non-heading markup inside valid headings remains supported.
+$inline = dzn_theme_content_page_anchor_content( '<h2>عنوان <em>مهم</em> و <a href="#">پیوند</a></h2>' );
+dzn_test_assert( 1 === count( $inline['sections'] ) && 'عنوان-مهم-و-پیوند' === $inline['sections'][0]['anchor'], 'Inline markup must not disturb a valid heading: ' . ( $inline['sections'][0]['anchor'] ?? 'none' ) );
+dzn_test_assert( false !== strpos( $inline['content'], '<a href="#">پیوند</a>' ), 'Inline markup must be preserved verbatim.' );
+
+// 12. Idempotence and id uniqueness across a mixed malformed/valid document.
+$mixed = '<h2>First</h3><h3>Second</h2><h2 id="بخش اول">بخش اول</h2><h2>بخش اول</h2></h3><h2>سالم</h2>';
+$pass_one = dzn_theme_content_page_anchor_content( $mixed, array( 'main-content', 'post-7' ) );
+$pass_two = dzn_theme_content_page_anchor_content( $pass_one['content'], array( 'main-content', 'post-7' ) );
+dzn_test_assert( $pass_one['content'] === $pass_two['content'], 'Mixed malformed/valid content must be idempotent.' );
+dzn_test_assert( array_column( $pass_one['sections'], 'anchor' ) === array_column( $pass_two['sections'], 'anchor' ), 'Mixed content must keep identical anchors on a second pass.' );
+preg_match_all( '/\sid="([^"]*)"/u', $pass_one['content'], $mixed_ids );
+dzn_test_assert( count( $mixed_ids[1] ) === count( array_unique( $mixed_ids[1] ) ), 'Mixed content must not emit duplicate ids: ' . implode( ', ', $mixed_ids[1] ) );
+foreach ( $mixed_ids[1] as $mixed_id ) {
+	dzn_test_assert( ! in_array( $mixed_id, array( 'main-content', 'post-7' ), true ), 'A generated anchor must never take a reserved wrapper id.' );
+}
+
 echo "Content page render tests passed.\n";

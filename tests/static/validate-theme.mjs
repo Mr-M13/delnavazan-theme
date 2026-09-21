@@ -238,8 +238,17 @@ if (contentPage.includes('substr_count( $span')) {
 if (!contentPage.includes("'<' === $character && $index > (int) $start")) {
 	throw new Error('The scanner must fail safe when a tag never closes.');
 }
-if (!contentPage.includes('$clusters[] = $cluster;') || !contentPage.includes('1 === count( $candidate_cluster )')) {
-	throw new Error('Ambiguous nested/overlapping heading ranges must be excluded.');
+if (!contentPage.includes('function dzn_theme_content_page_heading_tokens( $content )')) {
+	throw new Error('Headings must be paired by an ordered tokenizer, not by independent same-level searches.');
+}
+for (const structure of ["'type'  => $closing ? 'close' : 'open'", 'array_pop( $stack )', "$entry['level'] !== $token['level']", 'if ( ! $stack ) {', 'poisoned']) {
+	if (!contentPage.includes(structure)) throw new Error(`The tokenizer must model tag order: ${structure}`);
+}
+if (!contentPage.includes('! $overlaps( $pair )')) {
+	throw new Error('A pair overlapping a malformed region must be excluded.');
+}
+if (!contentPage.includes("in_array( (int) $pair['level'], $levels, true )")) {
+	throw new Error('Non-outline headings must be read for structure only.');
 }
 if (!documentPartial.includes('$dzn_document_data[\'content\']') || !documentPartial.includes('the_content();')) {
 	throw new Error('The document body must render the anchored pipeline output and keep the paginated path.');
