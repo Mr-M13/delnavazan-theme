@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.0 — correction round 3 (candidate, unmerged) — 2026-09-21
+
+- Independent re-review of the correction-round-2 candidate `642501f7106697af5e65ecef4373a82c9d429bf1` failed on one blocking parser defect: mismatched reverse-crossing heading closures were not rejected before pairing.
+- Headings are now paired by an ordered tokenizer that reads H2/H3 opening and closing tags in document order: mismatched closes, nested headings, crossing structures, stray closes and unclosed openings are all treated as malformed regions that stay byte-stable with no outline entry.
+- A malformed opening can no longer consume a later valid heading's closing tag, and anchoring resumes after the malformed region so a valid neighbour is still anchored and outlined.
+- The C3 diff is parser and tests only; no other theme file changed.
+
 ## 0.7.0 — correction round 2 (candidate, unmerged) — 2026-09-21
 
 - Independent re-review of the correction-round-1 candidate `060f2cb2f864ec7e3f64b691f59eec36ee2fd8f1` failed on five findings; all five are corrected additively.

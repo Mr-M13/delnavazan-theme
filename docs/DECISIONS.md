@@ -116,3 +116,9 @@ anchors or an outline rather than changing page-splitting behaviour.
   is left exactly as authored and simply contributes no outline entry.
 - The print marker is driven by one predicate shared with the rendering decision, so a new page
   template cannot silently inherit document print behaviour.
+
+### Correction round 3 decision — approved
+
+Heading pairs are established from tag order, not by searching each opening tag for a same-level
+closing tag. Structure is decided first and mutation second, so malformed markup is always left exactly
+as authored while well-formed headings around it are still anchored.

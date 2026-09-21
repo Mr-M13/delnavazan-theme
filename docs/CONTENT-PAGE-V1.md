@@ -44,6 +44,43 @@ Correction round 2 was also regression-audited beyond the listed items: paginati
 no-global-filter guarantee, paginated carve-out, table RTL, print scoping, accessibility utilities,
 portal isolation and query hygiene are all re-asserted.
 
+## Correction round 3 (independent re-review FAIL — one parser defect)
+
+The independent re-review of correction-round-2 candidate `642501f7106697af5e65ecef4373a82c9d429bf1`
+failed on one blocking parser defect: mismatched heading closures were not rejected before pairing, so
+`<h2>First</h3><h3>Second</h2>` was rewritten into an anchored H2 with a misleading outline entry, and
+`<h2>Broken</h3><h2>Valid neighbour</h2>` let the malformed opening greedily consume the later valid
+heading's closing tag.
+
+**Correction.** Headings are no longer found by searching each opening tag for the next same-level
+close. `dzn_theme_content_page_heading_tokens()` reads every H2/H3 opening and closing tag in document
+order using the existing quote-aware tag-end logic and pairs them structurally:
+
+- an opening tag pushes a pending heading; an opening while another heading is open marks both the
+  inner and the enclosing heading as ambiguous;
+- a closing tag that matches the pending heading completes a well-formed pair;
+- a closing tag of a different level, a stray closing tag with nothing pending, a nested pair, and an
+  opening that never closes all record a malformed region;
+- any pair whose span overlaps a malformed region is discarded, so a malformed heading never produces
+  an anchor or an outline entry and never rewrites authored markup;
+- pairing resumes after the malformed region, so a later structurally valid heading is anchored and
+  outlined normally, and a malformed opening can no longer absorb a valid heading's closing tag.
+
+Only the outline levels (H2/H3) are rewritten; every other heading level participates in the structure
+walk so nesting and mismatches are detected, but is never modified. The rebuild still runs from the end
+of the document backwards, so offsets stay valid, authored ids, the reserved-id contract, deterministic
+collisions and idempotence are unchanged.
+
+**Adversarial matrix executed** (render suite, all passing): reverse crossing; malformed opening
+followed by a valid neighbour (both levels); nested H2/H3 and H3/H2; same-level H2/H2 and H3/H3;
+stray closing tags before and between valid headings; unclosed heading followed by another heading;
+malformed region followed by several valid Persian headings; nested inline non-heading markup inside a
+valid heading; the correction-round-2 opposite-quote and `>`/`<` attribute cases; and idempotence plus
+final-id uniqueness across a mixed malformed/valid document. The disposable WordPress runtime
+additionally renders the reproduced cases end-to-end: the malformed tags survive untouched and
+unduplicated, the three valid neighbours are anchored and outlined in both outline variants, no
+malformed heading receives an id or an `href`, and the recovered document stays id-unique.
+
 ## What the system provides
 
 | Capability | Implementation |
