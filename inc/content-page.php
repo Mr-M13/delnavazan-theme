@@ -350,13 +350,130 @@ function dzn_theme_content_page_ids( $html ) {
 }
 
 /**
+ * Tokenize H2/H3 opening and closing tags in document order, then pair them structurally.
+ *
+ * Each opening heading is NOT searched independently for the next same-level closing tag: the tags are
+ * read in order, so a mismatched closing tag can never be absorbed by a later valid heading. A tag
+ * whose attributes cannot be scanned confidently is not a token at all and stays untouched.
+ *
+ * @param string $content Rendered content.
+ * @return array{pairs:array<int,array<string,mixed>>,malformed:array<int,array<int,int>>}
+ */
+function dzn_theme_content_page_heading_tokens( $content ) {
+	$tokens = array();
+
+	if ( preg_match_all( '/<(\/?)h([1-6])(?=[\s\/>])/i', (string) $content, $matches, PREG_OFFSET_CAPTURE ) ) {
+		foreach ( $matches[0] as $index => $candidate ) {
+			$start   = (int) $candidate[1];
+			$closing = '/' === $matches[1][ $index ][0];
+			$tag_end = dzn_theme_content_page_tag_end( (string) $content, $start );
+
+			if ( false === $tag_end ) {
+				continue;
+			}
+
+			$tokens[] = array(
+				'type'  => $closing ? 'close' : 'open',
+				'level' => (int) $matches[2][ $index ][0],
+				'start' => $start,
+				'end'   => $tag_end,
+			);
+		}
+	}
+
+	$pairs     = array();
+	$malformed = array();
+	$stack     = array();
+
+	foreach ( $tokens as $token ) {
+		if ( 'open' === $token['type'] ) {
+			$entry = array(
+				'level'    => $token['level'],
+				'start'    => $token['start'],
+				'open_end' => $token['end'],
+				'poisoned' => false,
+			);
+
+			if ( $stack ) {
+				// Nested headings are ambiguous: neither the inner nor the enclosing heading may be
+				// rewritten or described by the outline.
+				$entry['poisoned'] = true;
+				$stack[ count( $stack ) - 1 ]['poisoned'] = true;
+			}
+
+			$stack[] = $entry;
+			continue;
+		}
+
+		if ( ! $stack ) {
+			$malformed[] = array( $token['start'], $token['end'] + 1 );
+			continue;
+		}
+
+		$entry = array_pop( $stack );
+
+		if ( $entry['level'] !== $token['level'] || $entry['poisoned'] ) {
+			$malformed[] = array( $entry['start'], $token['end'] + 1 );
+			continue;
+		}
+
+		$pairs[] = array(
+			'level'       => $entry['level'],
+			'start'       => $entry['start'],
+			'open_end'    => $entry['open_end'],
+			'close_start' => $token['start'],
+			'close_end'   => $token['end'] + 1,
+		);
+	}
+
+	// An opening tag that never closes is malformed too.
+	foreach ( $stack as $entry ) {
+		$malformed[] = array( $entry['start'], $entry['open_end'] + 1 );
+	}
+
+	// A pair that overlaps any malformed region stays untouched and contributes no outline entry.
+	$overlaps = static function ( array $pair ) use ( $malformed ) {
+		foreach ( $malformed as $range ) {
+			if ( $pair['start'] < $range[1] && $range[0] < $pair['close_end'] ) {
+				return true;
+			}
+		}
+
+		return false;
+	};
+
+	$pairs = array_values( array_filter( $pairs, static function ( $pair ) use ( $overlaps ) {
+		return ! $overlaps( $pair );
+	} ) );
+
+	// Defensive: only non-overlapping, document-ordered pairs may be rewritten.
+	usort( $pairs, static function ( $left, $right ) {
+		return $left['start'] <=> $right['start'];
+	} );
+
+	$ordered = array();
+	$end     = -1;
+
+	foreach ( $pairs as $pair ) {
+		if ( $pair['start'] < $end ) {
+			continue;
+		}
+
+		$end       = $pair['close_end'];
+		$ordered[] = $pair;
+	}
+
+	return array( 'pairs' => $ordered, 'malformed' => $malformed );
+}
+
+/**
  * Anchor every outline heading in rendered content and describe the document outline.
  *
- * The function parses each heading opening tag with a quote-aware scan, so attributes that legally
- * contain `>` or `<` can never corrupt the anchor or the outline text. Anchors are assigned against
- * every id already present in the document plus the ids this feature reserves, so the result never
- * emits a duplicate id. Malformed headings (an unclosed tag, or a missing closing tag) are left
- * exactly as authored, and the function is idempotent.
+ * Headings are paired by an ordered tokenizer, so well-formed H2/H3 headings are anchored while any
+ * mismatched close, nesting, crossing structure, stray close or unclosed opening stays byte-stable and
+ * contributes no outline entry. Anchoring resumes after a malformed region, anchors are assigned
+ * against every id already present in the document plus the ids this feature reserves (so the result
+ * never emits a duplicate id), and the function is idempotent.
  *
  * @param string   $content  Rendered content.
  * @param string[] $reserved Extra ids that must never be used as an anchor.
@@ -364,83 +481,30 @@ function dzn_theme_content_page_ids( $html ) {
  */
 function dzn_theme_content_page_anchor_content( $content, array $reserved = array() ) {
 	$content = (string) $content;
-	$levels  = dzn_theme_content_page_heading_levels();
 
 	if ( '' === $content ) {
 		return array( 'content' => $content, 'sections' => array() );
 	}
 
-	$headings = array();
+	$tokenized = dzn_theme_content_page_heading_tokens( $content );
+	$headings  = array();
 
-	if ( preg_match_all( '/<h([1-6])(?=[\s\/>])/i', $content, $candidates, PREG_OFFSET_CAPTURE ) ) {
-		foreach ( $candidates[0] as $index => $candidate ) {
-			$level = (int) $candidates[1][ $index ][0];
+	$levels = dzn_theme_content_page_heading_levels();
 
-			if ( ! in_array( $level, $levels, true ) ) {
-				continue;
-			}
-
-			$start    = (int) $candidate[1];
-			$open_end = dzn_theme_content_page_tag_end( $content, $start );
-
-			if ( false === $open_end ) {
-				continue;
-			}
-
-
-			if ( ! preg_match( '/<\/h' . $level . '\s*>/i', $content, $closing, PREG_OFFSET_CAPTURE, $open_end ) ) {
-				continue;
-			}
-
-			$close_start = (int) $closing[0][1];
-
-			$headings[] = array(
-				'level'      => $level,
-				'start'      => $start,
-				'open_end'   => $open_end,
-				'close_end'  => $close_start + strlen( $closing[0][0] ),
-				'attributes' => substr( $content, $start + 3, $open_end - ( $start + 3 ) ),
-				'inner'      => substr( $content, $open_end + 1, $close_start - ( $open_end + 1 ) ),
-			);
-		}
-	}
-
-	if ( ! $headings ) {
-		return array( 'content' => $content, 'sections' => array() );
-	}
-
-	// Malformed nested or crossing headings must fail safe. Group candidates into clusters of
-	// overlapping ranges and keep only clusters that hold exactly one heading, so an ambiguous
-	// structure is left exactly as authored and contributes no outline entry.
-	$clusters = array();
-	$cluster  = array();
-	$end      = -1;
-
-	foreach ( $headings as $heading ) {
-		if ( $cluster && $heading['start'] < $end ) {
-			$cluster[] = $heading;
-			$end       = max( $end, $heading['close_end'] );
+	foreach ( $tokenized['pairs'] as $pair ) {
+		// Only the outline levels are rewritten; every other heading is read for structure only.
+		if ( ! in_array( (int) $pair['level'], $levels, true ) ) {
 			continue;
 		}
 
-		if ( $cluster ) {
-			$clusters[] = $cluster;
-		}
-
-		$cluster = array( $heading );
-		$end     = $heading['close_end'];
-	}
-
-	if ( $cluster ) {
-		$clusters[] = $cluster;
-	}
-
-	$headings = array();
-
-	foreach ( $clusters as $candidate_cluster ) {
-		if ( 1 === count( $candidate_cluster ) ) {
-			$headings[] = $candidate_cluster[0];
-		}
+		$headings[] = array(
+			'level'       => $pair['level'],
+			'start'       => $pair['start'],
+			'open_end'    => $pair['open_end'],
+			'close_end'   => $pair['close_end'],
+			'attributes'  => substr( $content, $pair['start'] + 3, $pair['open_end'] - ( $pair['start'] + 3 ) ),
+			'inner'       => substr( $content, $pair['open_end'] + 1, $pair['close_start'] - ( $pair['open_end'] + 1 ) ),
+		);
 	}
 
 	if ( ! $headings ) {
