@@ -27,6 +27,23 @@ with no outline, and nothing supported print or long-form Persian reading. This 
 resuable document system that reuses the existing header, footer, palette, typography and prose
 rules.
 
+## Correction round 2 (independent re-review FAIL)
+
+The independent re-review of correction-round-1 candidate `060f2cb2f864ec7e3f64b691f59eec36ee2fd8f1`
+failed on five findings. All five are corrected on additive descendants of that commit.
+
+| Finding | Correction |
+| --- | --- |
+| 1. A valid opposite quote inside a quoted value was rejected (`<h2 title="don't > stop">`) | The scanner is driven purely by the **active** delimiter: an apostrophe inside a double-quoted value (or a double quote inside a single-quoted value) is ordinary content, and `>`/`<` remain legal inside any quoted value. The global even-count quote assumption is gone. A tag that never closes (no `>` outside quotes, a nested `<` outside quotes, or more than 2 KB) is reported as malformed and left untouched. |
+| 2. Malformed nested/overlapping headings corrupted output | Heading candidate ranges are grouped into clusters of overlapping ranges before any mutation. Only clusters containing exactly one heading are anchored; an ambiguous cluster is left byte-stable and contributes no outline entry, and a neighbouring unambiguous heading is still anchored. Verified for H2/H3 nesting in both directions, same-level nesting and crossing ranges. |
+| 3. Only content ids were reserved | A single explicit contract, `dzn_theme_content_page_reserved_ids( $post )`, now returns every id the template and its wrappers emit before anchors are assigned: `main-content`, the dynamic `post-{ID}` article wrapper, and the feature's own `dzn-toc-title-desktop`, `dzn-toc-title-mobile` and `dzn-related-title`. The anchoring path consumes that function (with a pure `dzn_theme_content_page_owned_ids()` fallback for direct calls), so a future wrapper id is added in one place. A runtime render of the whole `single.php` document proves final DOM id uniqueness. |
+| 4. The shared utilities layer was deleted | The previous correction truncated the file inside the print-block region and removed the utilities layer (`screen-reader-text`, `.screen-reader-text:focus`, `[hidden]`, `.site-branding__description`, `.menu-toggle__label`, navigation/footer link-colour compatibility, `.dzn-owned-media-slot`). The layer is restored **byte-identical** to the reviewed parent, the CSS diff against that parent now contains only the intended document rules, and a static check fails if a shared utility or the token layer shrinks. |
+| 5. The print marker was too broad | One shared predicate, `dzn_theme_content_page_is_document_response()`, decides the marker and mirrors what the templates do: single posts, default pages and the Policy template qualify; the front page, non-singular requests, both Portals and any custom or plugin page template do not. Runtime checks cover every positive and negative case. |
+
+Correction round 2 was also regression-audited beyond the listed items: pagination navigation, the
+no-global-filter guarantee, paginated carve-out, table RTL, print scoping, accessibility utilities,
+portal isolation and query hygiene are all re-asserted.
+
 ## What the system provides
 
 | Capability | Implementation |
@@ -88,6 +105,13 @@ Executed:
 - `php` lint of all 62 theme PHP files in a `php:8.3-cli` container — no failures.
 - CSS brace balance and the token/palette parity check — pass.
 
+- Correction round 2 (same disposable WordPress runtime): a full `single.php` render of a post whose
+  content carries `id="post-{ID}"` and `id="main-content"` produced a document in which every id was
+  unique, the wrapper kept its own id and the colliding authored ids resolved to `post-{ID}-2` and
+  `main-content-2`; a post with malformed nested headings rendered without duplication, produced no
+  outline entry for the malformed cluster and still anchored its unambiguous neighbours; and the print
+  marker appeared for a post, a default page and the Policy template and was absent for the homepage
+  and a Student Portal page template.
 - Correction round 1 (same disposable WordPress runtime): the article rendered with an
   entity-encoded `>` in a heading attribute, a Persian table and the outline; every generated id
   matched `^[\p{L}\p{N}-]+$` and no id repeated; a paginated document rendered

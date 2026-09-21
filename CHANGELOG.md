@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.0 — correction round 2 (candidate, unmerged) — 2026-09-21
+
+- Independent re-review of the correction-round-1 candidate `060f2cb2f864ec7e3f64b691f59eec36ee2fd8f1` failed on five findings; all five are corrected additively.
+- Heading scanning is delimiter-driven only, so a valid opposite quote inside a quoted value (`title="don't > stop"`) is accepted while `>`/`<` stay legal inside quoted values; malformed tags are detected and left untouched.
+- Ambiguous nested/crossing heading ranges are excluded as a cluster before mutation, so malformed markup is never duplicated or corrupted and never produces an outline entry; neighbouring headings are still anchored.
+- One explicit template-id contract reserves every wrapper id before anchors are assigned (`main-content`, `post-{ID}` and the feature's outline/related ids); a full rendered document now proves final DOM id uniqueness.
+- The shared utilities layer deleted by the previous correction (`screen-reader-text`, `[hidden]`, brand/menu compatibility, navigation and footer link colours, owned-media-slot sizing) is restored byte-identical to the reviewed parent, with a static preservation check.
+- The print marker is driven by one shared document-response predicate, so custom or plugin page templates, the front page, archives and both Portals no longer receive document print behaviour.
+
 ## 0.7.0 — correction round 1 (candidate, unmerged) — 2026-09-21
 
 - Independent review of `8e0af6253ff9c0243ff25000bf15a681efcf376b` failed on six findings; all six are corrected additively.

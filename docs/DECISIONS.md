@@ -107,3 +107,12 @@ anchors or an outline rather than changing page-splitting behaviour.
   template default.
 - A heading whose opening tag cannot be parsed confidently is left untouched rather than rewritten:
   losing a table-of-contents entry is safer than corrupting authored content.
+
+### Correction round 2 decisions — approved
+
+- Anchor ids are reserved through one explicit contract that names every id the template and its
+  wrappers emit; a heading — authored or generated — may never take a wrapper id.
+- Malformed heading structures are never repaired by the theme: an ambiguous nested or crossing range
+  is left exactly as authored and simply contributes no outline entry.
+- The print marker is driven by one predicate shared with the rendering decision, so a new page
+  template cannot silently inherit document print behaviour.
