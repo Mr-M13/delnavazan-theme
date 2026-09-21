@@ -199,8 +199,38 @@ for (const fn of [
 ]) {
 	if (!contentPage.includes(`function ${fn}(`)) throw new Error(`Missing content-page function: ${fn}`);
 }
-if (!contentPage.includes("add_filter( 'the_content', 'dzn_theme_content_page_filter_content', 20 )")) {
-	throw new Error('Anchoring must run on the canonical the_content pipeline.');
+if (/add_filter\(\s*'the_content'/.test(contentPage)) {
+	throw new Error('Anchoring must not be registered globally on the_content.');
+}
+if (!contentPage.includes("apply_filters( 'the_content', $post->post_content )")) {
+	throw new Error('The document contract must read the canonical content pipeline.');
+}
+for (const helper of ['dzn_theme_content_page_tag_end', 'dzn_theme_content_page_attribute', 'dzn_theme_content_page_ids', 'dzn_theme_content_page_reserved_ids']) {
+	if (!contentPage.includes(`function ${helper}(`)) throw new Error(`Missing quote-aware document helper: ${helper}`);
+}
+if (!contentPage.includes('(?=[\\s\\/>])')) {
+	throw new Error('The heading scan must exclude non-heading tags such as <hr>.');
+}
+if (contentPage.includes('#<(h[1-6])\\b([^>]*)>')) {
+	throw new Error('Brittle opening-tag parsing must not return.');
+}
+if (!contentPage.includes('dzn_theme_content_page_reserved_ids()')) {
+	throw new Error('Theme-owned ids must be reserved before anchors are assigned.');
+}
+if (!documentPartial.includes('$dzn_document_data[\'content\']') || !documentPartial.includes('the_content();')) {
+	throw new Error('The document body must render the anchored pipeline output and keep the paginated path.');
+}
+if (!documentPartial.includes('wp_link_pages(') || !documentPartial.includes('aria-label=')) {
+	throw new Error('Paginated documents must expose accessible reader navigation.');
+}
+if (!documentPartial.includes('صفحهٔ بعد') || !documentPartial.includes('صفحهٔ قبل')) {
+	throw new Error('Pagination labels must be localised.');
+}
+if (!contentPage.includes("add_filter( 'body_class', 'dzn_theme_content_page_body_class' )") || !contentPage.includes('dzn-document-body')) {
+	throw new Error('Document print scoping class must be registered.');
+}
+if (!contentPage.includes('is_front_page()') || !contentPage.includes('dzn_theme_is_portal_template') || !contentPage.includes('dzn_theme_is_teacher_portal_template')) {
+	throw new Error('The document body class must exclude the front page and both portals.');
 }
 if (!contentPage.includes('return array( 2, 3 );') || contentPage.includes("'h1'")) {
 	throw new Error('Only H2/H3 may join the document outline.');
@@ -270,8 +300,28 @@ if (!documentCss.includes('position:\n        sticky')) {
 if (!documentCss.includes('@media (min-width: 64rem)')) {
 	throw new Error('The document system must define its desktop breakpoint.');
 }
-if (!css.split('@media print')[1] || !/dzn-toc/.test(css.split('@media print')[1])) {
+const printBlock = css.split('@media print')[1] ?? '';
+if (!/dzn-toc/.test(printBlock)) {
 	throw new Error('Print support must remove the outline and site chrome.');
+}
+if (css.split('@media print').length > 2) {
+	throw new Error('There must be exactly one print block.');
+}
+for (const chunk of printBlock.split('{').slice(0, -1)) {
+	const selectorText = chunk.slice(Math.max(chunk.lastIndexOf('}'), chunk.lastIndexOf(';')) + 1).trim();
+	if ('' === selectorText) continue;
+	if (!selectorText.startsWith('body.dzn-document-body')) {
+		throw new Error(`Print selectors must be scoped to document pages: ${selectorText.split('\n')[0]}`);
+	}
+}
+if ((printBlock.match(/body\.dzn-document-body/g) ?? []).length < 6) {
+	throw new Error('Document print rules must all be scoped through the document body class.');
+}
+if (!documentCss.includes('direction:\n      inherit') || !documentCss.includes('table[dir="ltr"]') || !documentCss.includes('.dzn-table--ltr')) {
+	throw new Error('Document tables must default to RTL with an explicit LTR opt-in.');
+}
+if (!documentCss.includes('overflow-x') || !documentCss.includes('.dzn-document__pagination')) {
+	throw new Error('Table overflow and pagination styles are missing.');
 }
 const portalCssForDocument = fs.readFileSync(path.join(theme, 'assets/css/portal.css'), 'utf8');
 if (/dzn-document/.test(portalCssForDocument)) {

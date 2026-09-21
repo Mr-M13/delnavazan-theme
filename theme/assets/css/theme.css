@@ -6366,28 +6366,140 @@
       var(--dzn-color-text-secondary);
   }
 }
+  /*
+   * Persian documents read right to left. The shared prose rules keep code LTR, so a document table
+   * inherits the document direction and alignment by default; only an explicit `dir="ltr"` or the
+   * `.dzn-table--ltr` opt-in switches a table to LTR.
+   */
+  .dzn-document__content
+  .dzn-prose
+  :where(
+    table
+  ) {
+    direction:
+      inherit;
+
+    text-align:
+      inherit;
+  }
+
+  .dzn-document__content
+  .dzn-prose
+  :where(
+    table[dir="ltr"],
+    .dzn-table--ltr
+  ) {
+    direction:
+      ltr;
+
+    text-align:
+      left;
+  }
+
+  /* Horizontal overflow stays independent of the writing direction. */
+  .dzn-document__content
+  .dzn-prose
+  :where(
+    .wp-block-table,
+    figure.wp-block-table
+  ) {
+    overflow-x:
+      auto;
+  }
+
+  .dzn-document__pagination {
+    display:
+      flex;
+
+    flex-wrap:
+      wrap;
+
+    align-items:
+      center;
+
+    gap:
+      var(--dzn-space-2);
+
+    margin-block-start:
+      var(--dzn-space-5);
+  }
+
+  .dzn-document__pagination
+  .post-page-numbers {
+    display:
+      inline-flex;
+
+    align-items:
+      center;
+
+    justify-content:
+      center;
+
+    min-inline-size:
+      var(--dzn-tap);
+
+    min-block-size:
+      var(--dzn-tap);
+
+    padding-inline:
+      var(--dzn-space-3);
+
+    border:
+      1px solid
+      var(--dzn-color-border);
+
+    border-radius:
+      var(--dzn-radius-sm);
+
+    background:
+      var(--dzn-color-surface-elevated);
+
+    color:
+      var(--dzn-color-text-secondary);
+
+    text-decoration:
+      none;
+  }
+
+  .dzn-document__pagination
+  .post-page-numbers:hover,
+
+  .dzn-document__pagination
+  .post-page-numbers:focus-visible {
+    border-color:
+      var(--dzn-color-action-primary);
+
+    color:
+      var(--dzn-color-action-primary-hover);
+  }
+
+  .dzn-document__pagination
+  .post-page-numbers.current {
+    border-color:
+      var(--dzn-color-action-primary);
+
+    background:
+      var(--dzn-color-action-primary);
+
+    color:
+      var(--dzn-color-on-action);
+  }
+
 
 
 /* =========================================================
-   PRINT
+   PRINT (DOCUMENT MODES ONLY)
    ========================================================= */
 
+/*
+ * Every rule here is scoped to `body.dzn-document-body`, which the theme adds only to singular
+ * post/page document responses that are not the front page and not a Student or Teacher Portal
+ * screen. The homepage, archives, Portal surfaces, feeds and REST responses keep their own print
+ * behaviour untouched.
+ */
 @media print {
 
-  .site-header,
-  .site-footer,
-  .dzn-floating-whatsapp,
-  .dzn-toc,
-  .dzn-document__related,
-  .dzn-document__print-hint,
-  .skip-link,
-  .comments-area,
-  .dzn-floating-whatsapp__label {
-    display:
-      none !important;
-  }
-
-  body {
+  body.dzn-document-body {
     background:
       #ffffff;
 
@@ -6395,12 +6507,28 @@
       #000000;
   }
 
+  body.dzn-document-body
+  :where(
+    .site-header,
+    .site-footer,
+    .dzn-floating-whatsapp,
+    .dzn-toc,
+    .dzn-document__related,
+    .dzn-document__print-hint,
+    .dzn-document__pagination,
+    .skip-link,
+    .comments-area
+  ) {
+    display:
+      none !important;
+  }
+
+  body.dzn-document-body
   .dzn-document,
+  body.dzn-document-body
   .dzn-document__body,
-  .dzn-document__content,
-  .dzn-document__body
-  .dzn-prose
-  > * {
+  body.dzn-document-body
+  .dzn-document__content {
     display:
       block;
 
@@ -6411,12 +6539,20 @@
       auto;
   }
 
+  body.dzn-document-body
   .dzn-document__body {
     grid-template-columns:
       minmax(0, 1fr);
   }
 
-  .dzn-document
+  body.dzn-document-body
+  .dzn-prose
+  > * {
+    max-inline-size:
+      none;
+  }
+
+  body.dzn-document-body
   .dzn-prose
   :where(
     a,
@@ -6429,150 +6565,9 @@
       underline;
   }
 
+  body.dzn-document-body
   .entry-title {
     font-size:
       1.6rem;
   }
-}
-
-
-
-/* =========================================================
-   UTILITIES
-   ========================================================= */
-
-@layer utilities {
-
-  .screen-reader-text {
-    position:
-      absolute !important;
-
-    inline-size:
-      1px;
-
-    block-size:
-      1px;
-
-    overflow:
-      hidden;
-
-    clip:
-      rect(
-        1px,
-        1px,
-        1px,
-        1px
-      );
-
-    white-space:
-      nowrap;
-  }
-
-  .screen-reader-text:focus {
-    z-index:
-      100000;
-
-    inset-block-start:
-      .5rem;
-
-    inset-inline-start:
-      .5rem;
-
-    inline-size:
-      auto;
-
-    block-size:
-      auto;
-
-    clip:
-      auto;
-
-    background:
-      var(--dzn-color-surface-elevated);
-
-    color:
-      var(--dzn-color-text-primary);
-
-    padding:
-      .75rem 1rem;
-  }
-
-  [hidden] {
-    display:
-      none !important;
-  }
-
-  @media (max-width: 30rem) {
-
-    .site-branding__description,
-    .menu-toggle__label {
-      display:
-        none;
-    }
-  }
-}
-
-
-/* =========================================================
-   WORDPRESS GLOBAL-STYLE COMPATIBILITY
-   ========================================================= */
-
-.primary-navigation
-a:not(.dzn-nav-action),
-
-.primary-navigation
-a:not(.dzn-nav-action):visited {
-  color:
-    var(--dzn-color-text-secondary);
-}
-
-.primary-navigation
-a:not(.dzn-nav-action):hover {
-  color:
-    var(--dzn-color-action-primary);
-}
-
-.primary-navigation
-a.dzn-nav-action,
-
-.primary-navigation
-a.dzn-nav-action:visited,
-
-.primary-navigation
-a.dzn-nav-action:hover,
-
-.primary-navigation
-a.dzn-nav-action:focus-visible {
-  color:
-    var(--dzn-color-on-action);
-}
-
-.site-footer
-:where(
-  a,
-  a:visited
-) {
-  color:
-    #ffffff;
-}
-
-.site-footer
-:where(
-  a:hover,
-  a:focus-visible
-) {
-  color:
-    #fff8ed;
-}
-
-.dzn-owned-media-slot
-> .wp-block-image {
-  inline-size:
-    100%;
-
-  block-size:
-    100%;
-
-  margin:
-    0;
 }

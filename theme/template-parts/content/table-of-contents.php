@@ -42,7 +42,7 @@ $dzn_toc_items    = static function () use ( $dzn_toc_sections ) {
 			<span class="dzn-toc__summary-label"><?php esc_html_e( 'فهرست مطالب', 'delnavazan-theme' ); ?></span>
 			<span class="dzn-toc__summary-icon" aria-hidden="true"></span>
 		</summary>
-		<nav class="dzn-toc__panel" aria-label="<?php esc_attr_e( 'فهرست مطالب', 'delnavazan-theme' ); ?>">
+		<nav class="dzn-toc__panel" id="dzn-toc-title-mobile" aria-label="<?php esc_attr_e( 'فهرست مطالب', 'delnavazan-theme' ); ?>">
 			<?php $dzn_toc_items(); ?>
 		</nav>
 	</details>

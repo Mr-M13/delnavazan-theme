@@ -87,8 +87,34 @@ $dzn_document_modified     = get_the_modified_date( DATE_W3C );
 					?>
 				<?php endif; ?>
 				<div class="entry-content dzn-prose">
-					<?php the_content(); ?>
+					<?php if ( $dzn_document_data['paginated'] ) : ?>
+						<?php
+						// Paginated documents keep core page splitting exactly as-is: no injected
+						// anchors, no generated outline, and native reader navigation below.
+						the_content();
+						?>
+					<?php else : ?>
+						<?php
+						// The anchored rendering of the canonical content pipeline. Anchoring is scoped
+						// to this template, so no other surface on the site is mutated.
+						echo $dzn_document_data['content']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Rendered post content from the canonical pipeline.
+						?>
+					<?php endif; ?>
 				</div>
+				<?php
+				wp_link_pages(
+					array(
+						'before'           => '<nav class="dzn-document__pagination" aria-label="' . esc_attr__( 'صفحه‌های این سند', 'delnavazan-theme' ) . '">',
+						'after'            => '</nav>',
+						'link_before'      => '<span class="dzn-document__page">',
+						'link_after'       => '</span>',
+						'next_or_number'   => 'number',
+						'separator'        => ' ',
+						'nextpagelink'     => esc_html__( 'صفحهٔ بعد', 'delnavazan-theme' ),
+						'previouspagelink' => esc_html__( 'صفحهٔ قبل', 'delnavazan-theme' ),
+					)
+				);
+				?>
 				<?php if ( $dzn_document_presentation['show_print_hint'] ) : ?>
 					<p class="dzn-document__print-hint">
 						<?php esc_html_e( 'این سند برای چاپ آماده است؛ می‌توانید از حالت چاپ مرورگر استفاده کنید.', 'delnavazan-theme' ); ?>

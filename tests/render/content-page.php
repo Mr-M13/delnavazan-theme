@@ -122,4 +122,72 @@ ob_start();
 require DZN_TEST_THEME . 'template-parts/content/table-of-contents.php';
 dzn_test_assert( '' === trim( (string) ob_get_clean() ), 'An empty outline must render nothing.' );
 
+
+// ---------------------------------------------------------------------------
+// Correction round 1 — adversarial parsing and complete ID collision avoidance.
+// ---------------------------------------------------------------------------
+
+// A legal ">" or "<" inside a quoted attribute must never corrupt the tag, the anchor or the text.
+$tricky = dzn_theme_content_page_anchor_content(
+	'<h2 title="a > b" data-note="x < y" class="has-arrow">عنوان الف</h2>' .
+	"<h2 title='c > d'>عنوان ب</h2>" .
+	'<h3 data-label="a > b < c">عنوان پ</h3>'
+);
+dzn_test_assert( 3 === count( $tricky['sections'] ), 'Quoted attribute values must not truncate headings: ' . json_encode( array_column( $tricky['sections'], 'text' ), JSON_UNESCAPED_UNICODE ) );
+dzn_test_assert( 'عنوان الف' === $tricky['sections'][0]['text'], 'The outline text must come from the heading inner content, not from an attribute fragment: ' . $tricky['sections'][0]['text'] );
+dzn_test_assert( 'عنوان-الف' === $tricky['sections'][0]['anchor'], 'A heading with a ">" attribute must still receive its text anchor: ' . $tricky['sections'][0]['anchor'] );
+dzn_test_assert( 'عنوان-ب' === $tricky['sections'][1]['anchor'], 'Single-quoted attributes with ">" must parse correctly.' );
+dzn_test_assert( false !== strpos( $tricky['content'], 'title="a > b"' ) && false !== strpos( $tricky['content'], 'data-note="x < y"' ), 'Authored attributes must be preserved verbatim.' );
+dzn_test_assert( false !== strpos( $tricky['content'], 'id="عنوان-ال ف"' ) || false !== strpos( $tricky['content'], 'id="عنوان-الف"' ), 'The anchor must be rendered on the heading tag.' );
+
+// Entities, nested inline markup and mixed scripts.
+$markup = dzn_theme_content_page_anchor_content(
+	'<h2>هزینه&nbsp;ها &amp; شرایط</h2><h2>عنوان <em>مهم</em> <strong>و</strong> پررنگ</h2><h2>بخش 2 — Intro Section</h2>'
+);
+dzn_test_assert( 'هزینه ها & شرایط' === $markup['sections'][0]['text'], 'Entities must be decoded for the outline text: ' . $markup['sections'][0]['text'] );
+dzn_test_assert( 'هزینه-ها-شرایط' === $markup['sections'][0]['anchor'], 'A Persian anchor must stay slug-safe: ' . $markup['sections'][0]['anchor'] );
+dzn_test_assert( 'عنوان مهم و پررنگ' === $markup['sections'][1]['text'], 'Nested inline markup must not leak into the outline text.' );
+dzn_test_assert( false !== strpos( $markup['content'], '<em>مهم</em>' ) && false !== strpos( $markup['content'], '<strong>و</strong>' ), 'Nested inline markup must survive anchoring.' );
+dzn_test_assert( 'بخش-2-intro-section' === $markup['sections'][2]['anchor'], 'Mixed Persian/Latin/numeric headings must slug deterministically: ' . $markup['sections'][2]['anchor'] );
+
+// Malformed markup fails safe: nothing is rewritten and nothing joins the outline.
+$malformed = dzn_theme_content_page_anchor_content( '<h2 title="unterminated>عنوان</h2><p>متن</p>' );
+dzn_test_assert( 0 === count( $malformed['sections'] ), 'An unterminated attribute must not produce an outline entry.' );
+dzn_test_assert( false !== strpos( $malformed['content'], 'title="unterminated>عنوان</h2>' ), 'Malformed markup must be left exactly as authored.' );
+$unclosed = dzn_theme_content_page_anchor_content( '<h2>بدون بستن<p>متن</p>' );
+dzn_test_assert( 0 === count( $unclosed['sections'] ), 'A heading without a closing tag must be skipped.' );
+dzn_test_assert( false !== strpos( $unclosed['content'], '<h2>بدون بستن' ), 'A heading without a closing tag must stay untouched.' );
+
+// Document-wide id collisions.
+$non_heading = dzn_theme_content_page_anchor_content( '<p id="rules">متن</p><h2 id="rules">قواعد</h2>' );
+dzn_test_assert( 'rules-2' === $non_heading['sections'][0]['anchor'], 'A heading must never duplicate a non-heading id: ' . $non_heading['sections'][0]['anchor'] );
+dzn_test_assert( false !== strpos( $non_heading['content'], '<p id="rules">' ), 'The non-heading element must keep its own id.' );
+
+$reserved = dzn_theme_content_page_anchor_content( '<h2 id="dzn-toc-title-desktop">فهرست</h2>' );
+dzn_test_assert( 'dzn-toc-title-desktop-2' === $reserved['sections'][0]['anchor'], 'A heading must never take a theme-owned id: ' . $reserved['sections'][0]['anchor'] );
+
+$extra_reserved = dzn_theme_content_page_anchor_content( '<h2 id="custom-reserved">عنوان</h2>', array( 'custom-reserved' ) );
+dzn_test_assert( 'custom-reserved-2' === $extra_reserved['sections'][0]['anchor'], 'Caller-reserved ids must be honoured.' );
+
+$generated_collision = dzn_theme_content_page_anchor_content( '<p id="intro">متن</p><h2>Intro</h2>' );
+dzn_test_assert( 'intro-2' === $generated_collision['sections'][0]['anchor'], 'A generated anchor must avoid an existing document id: ' . $generated_collision['sections'][0]['anchor'] );
+
+$cross = dzn_theme_content_page_anchor_content( '<h2>بخش</h2><h2 id="بخش">بخش</h2>' );
+dzn_test_assert( 'بخش-2' === $cross['sections'][0]['anchor'] && 'بخش' === $cross['sections'][1]['anchor'], 'A generated anchor must not steal an authored id that appears later: ' . $cross['sections'][0]['anchor'] . '/' . $cross['sections'][1]['anchor'] );
+$cross_again = dzn_theme_content_page_anchor_content( $cross['content'] );
+dzn_test_assert( array_column( $cross_again['sections'], 'anchor' ) === array_column( $cross['sections'], 'anchor' ), 'Collision resolution must stay idempotent.' );
+
+// The reserved-id contract itself is stable and covers the feature's own ids.
+foreach ( array( 'dzn-toc-title-desktop', 'dzn-toc-title-mobile', 'dzn-related-title' ) as $owned ) {
+	dzn_test_assert( in_array( $owned, dzn_theme_content_page_reserved_ids(), true ), "Theme-owned id must be reserved: {$owned}" );
+}
+
+// The outline must target the final, unique ids for both variants.
+$args   = array( 'sections' => $cross['sections'], 'variant' => 'mobile' );
+ob_start();
+require DZN_TEST_THEME . 'template-parts/content/table-of-contents.php';
+$mobile_collision = ob_get_clean();
+dzn_test_assert( false !== strpos( $mobile_collision, 'href="#بخش-2"' ) && false !== strpos( $mobile_collision, 'href="#بخش"' ), 'The outline must link the resolved unique anchors.' );
+dzn_test_assert( false !== strpos( $mobile_collision, 'id="dzn-toc-title-mobile"' ), 'The mobile outline panel must expose its reserved id.' );
+
 echo "Content page render tests passed.\n";

@@ -101,6 +101,46 @@ function dzn_theme_content_page_words_per_minute() {
 }
 
 /**
+ * Strip markup from one fragment, robust to PHP's `strip_tags()` pathology.
+ *
+ * PHP's `strip_tags()` returns an empty string for markup whose quoted attribute values contain `>`
+ * and whose closing quote is no longer a literal quote (a shape WordPress texturisation can produce
+ * from raw HTML content). The fallback removes tags and any residual angle brackets so a heading still
+ * contributes its visible text instead of silently disappearing.
+ *
+ * @param string $html Rendered fragment.
+ * @return string
+ */
+function dzn_theme_content_page_strip_tags( $html ) {
+	$html = (string) $html;
+	$text = wp_strip_all_tags( $html );
+
+	if ( '' === trim( $text ) && '' !== trim( $html ) ) {
+		$text = preg_replace( '/<[^<>]*>/', ' ', $html );
+		$text = str_replace( array( '<', '>' ), ' ', (string) $text );
+	}
+
+	return (string) $text;
+}
+
+/**
+ * Visible text of one rendered fragment: tags stripped, entities decoded, whitespace collapsed.
+ *
+ * The outline displays this text, and the table of contents escapes it again at output time, so a
+ * heading containing `&amp;` or `&nbsp;` is shown as authored rather than as a literal entity.
+ *
+ * @param string $html Rendered fragment.
+ * @return string
+ */
+function dzn_theme_content_page_text( $html ) {
+	$text = dzn_theme_content_page_strip_tags( $html );
+	$text = html_entity_decode( $text, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+	$text = str_replace( array( "\xC2\xA0", "\xE2\x80\xAF" ), ' ', $text );
+
+	return trim( preg_replace( '/\s+/u', ' ', $text ) );
+}
+
+/**
  * Persian-aware, deterministic anchor base for one heading.
  *
  * Accents and punctuation collapse to single dashes, the zero-width non-joiner is dropped so the
@@ -154,83 +194,269 @@ function dzn_theme_content_page_unique_anchor( $candidate, array &$used, $positi
 }
 
 /**
- * Insert or replace the id attribute of one heading tag.
+ * Insert or replace the id attribute of one heading opening tag.
  *
- * @param string $tag_name   Lower-case heading tag name.
  * @param string $attributes Existing attribute string without the tag name.
  * @param string $anchor     Resolved anchor id.
  * @return string
  */
-function dzn_theme_content_page_heading_attributes( $tag_name, $attributes, $anchor ) {
-	$escaped = esc_attr( $anchor );
-	$pattern = '/\bid\s*=\s*(["\']).*?\1/i';
+function dzn_theme_content_page_heading_attributes( $attributes, $anchor ) {
+	$escaped    = esc_attr( $anchor );
+	$attributes = (string) $attributes;
+	$pattern    = '/\bid\s*=\s*(?:"[^"]*"|\'[^\']*\'|[^\s"\'<>`]+)/i';
 
-	if ( preg_match( $pattern, (string) $attributes ) ) {
-		return preg_replace( $pattern, 'id="' . $escaped . '"', (string) $attributes, 1 );
+	if ( preg_match( $pattern, $attributes ) ) {
+		return preg_replace( $pattern, 'id="' . $escaped . '"', $attributes, 1 );
 	}
 
-	return ' id="' . $escaped . '"' . (string) $attributes;
+	return ' id="' . $escaped . '"' . $attributes;
+}
+
+/**
+ * Theme-owned ids this feature reserves on a document.
+ *
+ * A generated anchor may never take one of these, and no heading may collide with them.
+ *
+ * @return string[]
+ */
+function dzn_theme_content_page_reserved_ids() {
+	return array( 'dzn-toc-title-desktop', 'dzn-toc-title-mobile', 'dzn-related-title' );
+}
+
+/**
+ * The offset of the `>` that closes the opening tag starting at `$start`.
+ *
+ * Quoted attribute values are honoured, so a legal `>` or `<` inside a title/data attribute can never
+ * truncate the tag. A tag whose quotes never close has no end and is reported as malformed.
+ *
+ * @param string $html  Rendered content.
+ * @param int    $start Offset of the `<` that opens the tag.
+ * @return int|false
+ */
+function dzn_theme_content_page_tag_end( $html, $start ) {
+	$length = strlen( $html );
+	$quote  = '';
+
+	for ( $index = (int) $start; $index < $length; $index++ ) {
+		$character = $html[ $index ];
+
+		if ( '' !== $quote ) {
+			if ( $character === $quote ) {
+				$quote = '';
+			}
+			continue;
+		}
+
+		if ( '"' === $character || "'" === $character ) {
+			$quote = $character;
+			continue;
+		}
+
+		if ( '>' === $character ) {
+			return $index;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * One attribute value from an opening-tag attribute string, honouring quoting.
+ *
+ * @param string $attributes Attribute string.
+ * @param string $name       Attribute name.
+ * @return string|null The value, or null when the attribute is absent.
+ */
+function dzn_theme_content_page_attribute( $attributes, $name ) {
+	$pattern = '/\b' . preg_quote( $name, '/' ) . '\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|([^\s"\'<>`]+))/i';
+
+	if ( preg_match( $pattern, (string) $attributes, $matches ) ) {
+		foreach ( array( 1, 2, 3 ) as $group ) {
+			if ( isset( $matches[ $group ] ) && '' !== $matches[ $group ] ) {
+				return $matches[ $group ];
+			}
+		}
+
+		return '';
+	}
+
+	return null;
+}
+
+/**
+ * Count every id attribute in one rendered document.
+ *
+ * @param string $html Rendered content.
+ * @return array<string,int>
+ */
+function dzn_theme_content_page_ids( $html ) {
+	$ids = array();
+
+	if ( preg_match_all( '/\bid\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|([^\s"\'<>`]+))/i', (string) $html, $matches, PREG_SET_ORDER ) ) {
+		foreach ( $matches as $match ) {
+			$value = '';
+
+			foreach ( array( 1, 2, 3 ) as $group ) {
+				if ( isset( $match[ $group ] ) && '' !== $match[ $group ] ) {
+					$value = $match[ $group ];
+					break;
+				}
+			}
+
+			$value = trim( (string) $value );
+
+			if ( '' === $value ) {
+				continue;
+			}
+
+			$ids[ $value ] = isset( $ids[ $value ] ) ? $ids[ $value ] + 1 : 1;
+		}
+	}
+
+	return $ids;
 }
 
 /**
  * Anchor every outline heading in rendered content and describe the document outline.
  *
- * The function is pure and idempotent: anchoring already-anchored content keeps the same ids and
- * produces the same outline, so a re-run can never drift from the table of contents.
+ * The function parses each heading opening tag with a quote-aware scan, so attributes that legally
+ * contain `>` or `<` can never corrupt the anchor or the outline text. Anchors are assigned against
+ * every id already present in the document plus the ids this feature reserves, so the result never
+ * emits a duplicate id. Malformed headings (an unclosed tag, or a missing closing tag) are left
+ * exactly as authored, and the function is idempotent.
  *
- * @param string $content Rendered post content.
+ * @param string   $content  Rendered content.
+ * @param string[] $reserved Extra ids that must never be used as an anchor.
  * @return array{content:string,sections:array<int,array<string,mixed>>}
  */
-function dzn_theme_content_page_anchor_content( $content ) {
-	$content  = (string) $content;
-	$levels   = dzn_theme_content_page_heading_levels();
-	$sections = array();
-	$used     = array();
-	$position = 0;
-	$pattern  = '#<(h[1-6])\b([^>]*)>(.*?)</\1>#is';
+function dzn_theme_content_page_anchor_content( $content, array $reserved = array() ) {
+	$content = (string) $content;
+	$levels  = dzn_theme_content_page_heading_levels();
 
-	$anchored = preg_replace_callback(
-		$pattern,
-		static function ( $matches ) use ( &$sections, &$used, &$position, $levels ) {
-			$tag_name = strtolower( $matches[1] );
-			$level    = (int) substr( $tag_name, 1 );
+	if ( '' === $content ) {
+		return array( 'content' => $content, 'sections' => array() );
+	}
+
+	$headings = array();
+
+	if ( preg_match_all( '/<h([1-6])(?=[\s\/>])/i', $content, $candidates, PREG_OFFSET_CAPTURE ) ) {
+		foreach ( $candidates[0] as $index => $candidate ) {
+			$level = (int) $candidates[1][ $index ][0];
 
 			if ( ! in_array( $level, $levels, true ) ) {
-				return $matches[0];
+				continue;
 			}
 
-			$position++;
-			$attributes = (string) $matches[2];
-			$inner      = (string) $matches[3];
-			$text       = trim( preg_replace( '/\s+/u', ' ', wp_strip_all_tags( $inner ) ) );
-			$authored   = '';
+			$start    = (int) $candidate[1];
+			$open_end = dzn_theme_content_page_tag_end( $content, $start );
 
-			if ( preg_match( '/\bid\s*=\s*(["\'])(.*?)\1/i', $attributes, $id_match ) ) {
-				$authored = trim( (string) $id_match[2] );
+			if ( false === $open_end ) {
+				continue;
 			}
 
-			$candidate = '' !== $authored ? $authored : dzn_theme_content_page_slug( $text );
-			$anchor    = dzn_theme_content_page_unique_anchor( $candidate, $used, $position );
+			// Fail safe on an implausible opening tag. A real heading tag is short and its quotes are
+			// balanced; this stops an unbalanced quote (for example markup that WordPress texturised
+			// into `title="a > b&#8221;`) from swallowing later markup.
+			$span = substr( $content, $start, $open_end - $start + 1 );
 
-			$sections[] = array(
-				'level'    => $level,
-				'anchor'   => $anchor,
-				'text'     => $text,
-				'authored' => '' !== $authored,
+			if ( strlen( $span ) > 2048
+				|| 0 !== substr_count( $span, '"' ) % 2
+				|| 0 !== substr_count( $span, "'" ) % 2
+			) {
+				continue;
+			}
+
+			if ( ! preg_match( '/<\/h' . $level . '\s*>/i', $content, $closing, PREG_OFFSET_CAPTURE, $open_end ) ) {
+				continue;
+			}
+
+			$close_start = (int) $closing[0][1];
+
+			$headings[] = array(
+				'level'      => $level,
+				'start'      => $start,
+				'open_end'   => $open_end,
+				'close_end'  => $close_start + strlen( $closing[0][0] ),
+				'attributes' => substr( $content, $start + 3, $open_end - ( $start + 3 ) ),
+				'inner'      => substr( $content, $open_end + 1, $close_start - ( $open_end + 1 ) ),
 			);
+		}
+	}
 
-			return '<' . $tag_name . dzn_theme_content_page_heading_attributes( $tag_name, $attributes, $anchor ) . '>' . $inner . '</' . $tag_name . '>';
-		},
-		$content
-	);
+	if ( ! $headings ) {
+		return array( 'content' => $content, 'sections' => array() );
+	}
 
-	if ( ! is_string( $anchored ) ) {
-		$anchored = $content;
-		$sections = array();
+	// Everything already carrying an id in this document is off limits for a generated anchor.
+	$existing       = dzn_theme_content_page_ids( $content );
+	$heading_ids    = array();
+	$authored       = array();
+	$reserved_names = array();
+
+	foreach ( $headings as $position => $heading ) {
+		$value = dzn_theme_content_page_attribute( $heading['attributes'], 'id' );
+		$value = null === $value ? '' : trim( (string) $value );
+
+		$authored[ $position ] = $value;
+
+		if ( '' !== $value ) {
+			$heading_ids[ $value ] = isset( $heading_ids[ $value ] ) ? $heading_ids[ $value ] + 1 : 1;
+		}
+	}
+
+	foreach ( array_merge( $reserved, dzn_theme_content_page_reserved_ids() ) as $name ) {
+		$name = trim( (string) $name );
+
+		if ( '' !== $name ) {
+			$reserved_names[ $name ] = true;
+		}
+	}
+
+	$assigned = array();
+	$sections = array();
+
+	foreach ( $headings as $position => $heading ) {
+		$number = $position + 1;
+		$text   = dzn_theme_content_page_text( $heading['inner'] );
+		$value  = $authored[ $position ];
+		// Ids used by anything other than this heading must never be reused.
+		$other_uses = ( $existing[ $value ] ?? 0 ) - ( $heading_ids[ $value ] ?? 0 );
+
+		if ( '' !== $value && ! isset( $reserved_names[ $value ] ) && $other_uses < 1 && ! isset( $assigned[ $value ] ) ) {
+			$anchor = $value;
+		} else {
+			$base   = '' !== $value ? $value : dzn_theme_content_page_slug( $text );
+			$anchor = '' !== $base ? $base : 'section-' . $number;
+			$suffix = 2;
+
+			while ( isset( $existing[ $anchor ] ) || isset( $assigned[ $anchor ] ) || isset( $reserved_names[ $anchor ] ) ) {
+				$anchor = $base . '-' . $suffix;
+				$suffix++;
+			}
+		}
+
+		$assigned[ $anchor ] = true;
+		$sections[]          = array(
+			'level'    => (int) $heading['level'],
+			'anchor'   => $anchor,
+			'text'     => $text,
+			'authored' => '' !== $value,
+		);
+	}
+
+	$result = $content;
+
+	for ( $index = count( $headings ) - 1; $index >= 0; $index-- ) {
+		$heading     = $headings[ $index ];
+		$replacement = '<h' . $heading['level']
+			. dzn_theme_content_page_heading_attributes( $heading['attributes'], $sections[ $index ]['anchor'] )
+			. '>' . $heading['inner'] . '</h' . $heading['level'] . '>';
+
+		$result = substr( $result, 0, $heading['start'] ) . $replacement . substr( $result, $heading['close_end'] );
 	}
 
 	return array(
-		'content'  => $anchored,
+		'content'  => $result,
 		'sections' => $sections,
 	);
 }
@@ -242,7 +468,7 @@ function dzn_theme_content_page_anchor_content( $content ) {
  * @return int Zero for content without readable text, otherwise whole minutes, at least one.
  */
 function dzn_theme_content_page_reading_minutes( $content ) {
-	$text = trim( preg_replace( '/\s+/u', ' ', wp_strip_all_tags( (string) $content ) ) );
+	$text = trim( preg_replace( '/\s+/u', ' ', dzn_theme_content_page_strip_tags( $content ) ) );
 
 	if ( '' === $text ) {
 		return 0;
@@ -290,6 +516,9 @@ function dzn_theme_content_page_mode( $post = null ) {
 /**
  * Anchor one rendered content string once per post and remember its document outline.
  *
+ * Presentation-only memoisation: the same rendered content always produces the same anchored content
+ * and outline, so the table of contents and the body can never disagree.
+ *
  * @param WP_Post|null $post    Post the content belongs to.
  * @param string       $content Rendered content.
  * @return array{content:string,sections:array<int,array<string,mixed>>,minutes:int}
@@ -297,10 +526,11 @@ function dzn_theme_content_page_mode( $post = null ) {
 function dzn_theme_content_page_document( $post, $content ) {
 	static $documents = array();
 
-	$key = ( $post ? (int) $post->ID : 0 ) . ':' . md5( (string) $content );
+	$content = (string) $content;
+	$key     = ( $post ? (int) $post->ID : 0 ) . ':' . md5( $content );
 
 	if ( ! isset( $documents[ $key ] ) ) {
-		$anchored = dzn_theme_content_page_anchor_content( (string) $content );
+		$anchored = dzn_theme_content_page_anchor_content( $content, dzn_theme_content_page_reserved_ids() );
 
 		$documents[ $key ] = array(
 			'content'  => $anchored['content'],
@@ -313,28 +543,11 @@ function dzn_theme_content_page_document( $post, $content ) {
 }
 
 /**
- * Anchor the rendered body exactly as the table of contents describes it.
- *
- * Idempotent and deterministic: the anchors a reader follows are the anchors the outline lists, and
- * re-rendering the same content produces the same ids. Paginated posts are left to core so page
- * splitting keeps working unchanged.
- *
- * @param string $content Rendered content.
- * @return string
- */
-function dzn_theme_content_page_filter_content( $content ) {
-	$post = get_post();
-
-	if ( ! $post || false !== strpos( (string) $post->post_content, '<!--nextpage-->' ) ) {
-		return $content;
-	}
-
-	return dzn_theme_content_page_document( $post, $content )['content'];
-}
-add_filter( 'the_content', 'dzn_theme_content_page_filter_content', 20 );
-
-/**
  * The document contract for one post: anchored content, outline, reading time and table of contents.
+ *
+ * The anchoring happens here, inside document rendering only. Nothing is registered on the global
+ * `the_content` pipeline, so the front page, archives, widgets, feeds, REST responses, secondary
+ * plugin calls and the Student/Teacher Portal surfaces keep the untouched WordPress output.
  *
  * @param int|WP_Post|null $post Post object or ID. Defaults to the current post.
  * @return array
@@ -362,11 +575,8 @@ function dzn_theme_content_page_data( $post = null ) {
 		);
 	}
 
-	// The canonical pipeline anchors the body through this module's own filter, so the outline below
-	// is always the outline that was rendered.
-	$rendered  = apply_filters( 'the_content', $post->post_content );
-	$document  = dzn_theme_content_page_document( $post, $rendered );
-	$sections  = $document['sections'];
+	$document = dzn_theme_content_page_document( $post, apply_filters( 'the_content', $post->post_content ) );
+	$sections = $document['sections'];
 
 	return array(
 		'content'      => $document['content'],
@@ -376,3 +586,37 @@ function dzn_theme_content_page_data( $post = null ) {
 		'requires_toc' => count( $sections ) >= dzn_theme_content_page_toc_minimum(),
 	);
 }
+
+/**
+ * Mark document-rendered responses so document-scoped print rules cannot leak to other surfaces.
+ *
+ * The Student Portal, Teacher Portal, homepage, archives, feeds, REST responses and the WordPress
+ * admin never receive this class, which is what keeps their print output unchanged.
+ *
+ * @param string[] $classes Body classes.
+ * @return string[]
+ */
+function dzn_theme_content_page_body_class( $classes ) {
+	if ( is_admin() || ! is_singular() || is_front_page() ) {
+		return $classes;
+	}
+
+	if ( function_exists( 'dzn_theme_is_portal_template' ) && dzn_theme_is_portal_template() ) {
+		return $classes;
+	}
+
+	if ( function_exists( 'dzn_theme_is_teacher_portal_template' ) && dzn_theme_is_teacher_portal_template() ) {
+		return $classes;
+	}
+
+	$post = get_post();
+
+	if ( ! $post || ! in_array( (string) $post->post_type, array( 'post', 'page' ), true ) ) {
+		return $classes;
+	}
+
+	$classes[] = 'dzn-document-body';
+
+	return $classes;
+}
+add_filter( 'body_class', 'dzn_theme_content_page_body_class' );
