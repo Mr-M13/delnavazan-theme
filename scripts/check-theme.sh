@@ -14,6 +14,7 @@ if command -v php >/dev/null 2>&1; then
 	find "$theme_dir" -type f -name '*.php' -print0 | xargs -0 -n1 php -l
 	php "$repo_dir/tests/render/portal-corrections.php"
 	php "$repo_dir/tests/render/teacher-portal-corrections.php"
+	php "$repo_dir/tests/render/content-page.php"
 else
   echo 'PHP unavailable: php -l is deferred to the mandatory staging gate.'
 fi
