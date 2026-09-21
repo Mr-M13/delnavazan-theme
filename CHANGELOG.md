@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.0 — correction round 4 (candidate, unmerged) — 2026-09-21
+
+- Independent re-review of the correction-round-3 candidate `eb778142a021ba8b71eba2d2659687dde8559328` failed on one blocking parser-recovery defect: after rejecting a malformed heading opening tag, the tokenizer could interpret heading-like text inside that malformed tag or its unterminated quoted attribute as genuine markup.
+- Token discovery now scans every tag lexeme left-to-right and records a malformed-lexeme boundary, so heading-looking bytes inside an unterminated attribute, an unclosed tag, a nested `<` outside quotes, or a malformed non-heading tag can never leak back into the token stream.
+- Recovery resumes only after a defensible structural boundary; the C3 ordered H2/H3 pairing behaviour and all accepted work are preserved, and structurally separate valid neighbours are still anchored.
+- Added the C4 adversarial matrix: unterminated double/single-quoted pseudo-headings, nested-`<` malformed tags, valid neighbours at both levels, multiple malformed regions, quoted angle brackets, opposite quotes, mixed-case tags, Persian neighbours, malformed non-heading tags, idempotence and final rendered id uniqueness.
+- The C4 diff is parser, tests and documentation only; no other theme file changed.
+
 ## 0.7.0 — correction round 3 (candidate, unmerged) — 2026-09-21
 
 - Independent re-review of the correction-round-2 candidate `642501f7106697af5e65ecef4373a82c9d429bf1` failed on one blocking parser defect: mismatched reverse-crossing heading closures were not rejected before pairing.

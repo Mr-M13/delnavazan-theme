@@ -122,3 +122,11 @@ anchors or an outline rather than changing page-splitting behaviour.
 Heading pairs are established from tag order, not by searching each opening tag for a same-level
 closing tag. Structure is decided first and mutation second, so malformed markup is always left exactly
 as authored while well-formed headings around it are still anchored.
+
+### Correction round 4 decision — approved
+
+Token discovery owns the lexical recovery boundary. A tag is scanned once to either its closing `>` or
+the end of its malformed lexeme; bytes inside that lexeme — including heading-looking substrings inside
+an unterminated quoted attribute, an unclosed tag, or a nested `<` outside quotes — are skipped as one
+unit and can never be re-tokenized as markup. Recovery resumes only at a defensible structural boundary,
+so unrelated later valid markup is never greedily consumed.

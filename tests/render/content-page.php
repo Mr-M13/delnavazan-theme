@@ -351,4 +351,92 @@ foreach ( $mixed_ids[1] as $mixed_id ) {
 	dzn_test_assert( ! in_array( $mixed_id, array( 'main-content', 'post-7' ), true ), 'A generated anchor must never take a reserved wrapper id.' );
 }
 
+
+// ---------------------------------------------------------------------------
+// Correction round 4 — malformed-lexeme recovery boundaries.
+// ---------------------------------------------------------------------------
+
+// 1. Unterminated double-quoted H2 attribute containing a literal <h3>...</h3>-looking string.
+$untouched( '<h2 title="unterminated <h3>Ghost</h3>>Real</h2>', 'Unterminated double-quoted H2 with a pseudo H3' );
+
+// 2. Unterminated single-quoted H3 attribute containing a literal <h2>...</h2>-looking string.
+$untouched( "<h3 title='unterminated <h2>Ghost</h2>>Real</h3>", 'Unterminated single-quoted H3 with a pseudo H2' );
+
+// 3. Malformed H2 opening tag containing a nested '<' outside quotes followed by heading-looking bytes.
+$untouched( '<h2 title="ok" <h3>Ghost</h3>>Real</h2>', 'Malformed H2 with a nested < outside quotes' );
+
+// 4. A malformed opening tag followed by a genuinely separate valid neighbour.
+$recover_boundary = dzn_theme_content_page_anchor_content( '<h2 title="ok" <h3>Ghost</h3>>Real</h2><h2>Valid</h2>' );
+dzn_test_assert( array( 'valid' ) === array_column( $recover_boundary['sections'], 'anchor' ), 'Recovery must anchor only the structurally separate valid neighbour: ' . json_encode( array_column( $recover_boundary['sections'], 'anchor' ) ) );
+dzn_test_assert( false !== strpos( $recover_boundary['content'], '<h2 title="ok" <h3>Ghost</h3>>Real</h2>' ), 'The malformed lexeme must stay byte-stable.' );
+dzn_test_assert( false !== strpos( $recover_boundary['content'], '<h2 id="valid">Valid</h2>' ), 'The valid neighbour must be anchored after recovery.' );
+dzn_test_assert( false === strpos( $recover_boundary['content'], 'id="ghost"' ), 'The pseudo heading must never receive an id.' );
+
+// 4b. Mirrored level recovery.
+$recover_boundary_h3 = dzn_theme_content_page_anchor_content( '<h3 title="ok" <h2>Ghost</h2>>Real</h3><h3>Valid</h3>' );
+dzn_test_assert( array( 'valid' ) === array_column( $recover_boundary_h3['sections'], 'anchor' ), 'Mirrored recovery must anchor the valid H3 neighbour.' );
+
+// 5. Multiple malformed regions separated by valid headings.
+$multiple_malformed = dzn_theme_content_page_anchor_content(
+	'<h2 title="ok" <h3>A</h3>>x</h2>' .
+	'<h2>One</h2>' .
+	'<h3 title="ok" <h2>B</h2>>y</h3>' .
+	'<h3>Two</h3>' .
+	'<h2>Three</h2>'
+);
+dzn_test_assert( array( 'one', 'two', 'three' ) === array_column( $multiple_malformed['sections'], 'anchor' ), 'Valid headings between malformed regions must all be anchored: ' . json_encode( array_column( $multiple_malformed['sections'], 'anchor' ) ) );
+dzn_test_assert( false === strpos( $multiple_malformed['content'], 'id="a"' ) && false === strpos( $multiple_malformed['content'], 'id="b"' ), 'Pseudo-headings inside malformed lexemes must never be anchored.' );
+
+// 6. `>` and `<` inside correctly terminated quoted attributes remain valid.
+$valid_angle_attributes = dzn_theme_content_page_anchor_content( '<h2 title="a > b < c" data-note=\'x > y < z\'>Valid heading</h2>' );
+dzn_test_assert( 1 === count( $valid_angle_attributes['sections'] ) && 'valid-heading' === $valid_angle_attributes['sections'][0]['anchor'], 'Angle brackets inside terminated quoted attributes must remain valid.' );
+
+// 7. Opposite-quote cases from C2 remain valid.
+$opposite_c4 = dzn_theme_content_page_anchor_content( '<h2 title="don\'t > stop">Valid heading</h2>' );
+dzn_test_assert( 1 === count( $opposite_c4['sections'] ) && 'valid-heading' === $opposite_c4['sections'][0]['anchor'], 'A valid opposite quote must still be accepted.' );
+$single_quoted_c4 = dzn_theme_content_page_anchor_content( "<h3 title='say \"hi\" > now'>متن الف</h3>" );
+dzn_test_assert( 1 === count( $single_quoted_c4['sections'] ) && 'متن-الف' === $single_quoted_c4['sections'][0]['anchor'], 'A double quote inside a single-quoted value must still be accepted.' );
+
+// 8. C3 reverse-crossing, mismatched, nested, stray-close and unclosed matrix is asserted above and
+//    must remain byte-stable through the same shared tokenizer.
+$c3_still_stable = dzn_theme_content_page_anchor_content( '<h2>First</h3><h3>Second</h2><h2>بخش اول</h2>' );
+dzn_test_assert( array( 'بخش-اول' ) === array_column( $c3_still_stable['sections'], 'anchor' ), 'C3 recovery behaviour must be preserved with the new boundary scanner.' );
+
+// 9. Mixed-case H2/H3 tags are still recognized and anchored.
+$mixed_case = dzn_theme_content_page_anchor_content( '<H2>Upper</H2><h3>Lower</h3>' );
+dzn_test_assert( array( 'upper', 'lower' ) === array_column( $mixed_case['sections'], 'anchor' ), 'Mixed-case H2/H3 tags must still be recognized.' );
+
+// 10. Persian valid neighbours after malformed regions.
+$persian_recovery = dzn_theme_content_page_anchor_content( '<h2 title="ok" <h3>Ghost</h3>>x</h2><h2>بخش اول</h2><p>متن</p><h3>زیربخش</h3>' );
+dzn_test_assert( array( 'بخش-اول', 'زیربخش' ) === array_column( $persian_recovery['sections'], 'anchor' ), 'Persian valid neighbours after a malformed region must be anchored.' );
+
+// Additional bypass: a heading-looking substring inside a malformed non-heading tag.
+$non_heading_malformed = dzn_theme_content_page_anchor_content( '<div title="ok" <h2>Ghost</h2>>x</div><h2>Valid</h2>' );
+dzn_test_assert( array( 'valid' ) === array_column( $non_heading_malformed['sections'], 'anchor' ), 'A heading-looking substring inside a malformed non-heading tag must not be tokenized.' );
+dzn_test_assert( false === strpos( $non_heading_malformed['content'], 'id="ghost"' ), 'The pseudo heading inside the malformed div must never be anchored.' );
+dzn_test_assert( false !== strpos( $non_heading_malformed['content'], '<h2 id="valid">Valid</h2>' ), 'The valid neighbour after the malformed div must be anchored.' );
+
+// Additional bypass: a heading-looking substring inside a terminated quoted attribute of a non-heading tag.
+$non_heading_attribute = dzn_theme_content_page_anchor_content( '<div title="<h2>Ghost</h2>">x</div><h2>Valid</h2>' );
+dzn_test_assert( array( 'valid' ) === array_column( $non_heading_attribute['sections'], 'anchor' ), 'A heading-looking substring inside a terminated quoted attribute of a non-heading tag must not be tokenized.' );
+dzn_test_assert( false === strpos( $non_heading_attribute['content'], 'id="ghost"' ), 'The pseudo heading inside the terminated attribute must never be anchored.' );
+dzn_test_assert( false !== strpos( $non_heading_attribute['content'], '<h2 id="valid">Valid</h2>' ), 'The valid neighbour after the non-heading attribute must be anchored.' );
+
+// Additional regression guard: a literal angle bracket in text must not consume later valid markup.
+$literal_angle = dzn_theme_content_page_anchor_content( '<p>2 < 3 and 4 > 1</p><h2>Valid</h2>' );
+dzn_test_assert( array( 'valid' ) === array_column( $literal_angle['sections'], 'anchor' ), 'A literal angle bracket in text must not swallow a later valid heading.' );
+dzn_test_assert( false !== strpos( $literal_angle['content'], '<p>2 < 3 and 4 > 1</p>' ), 'Literal angle-bracket text must stay byte-stable.' );
+
+// 11. Idempotence and final rendered id uniqueness with pseudo-headings present.
+$complex_c4 = '<h2 title="ok" <h3>Ghost</h3>>x</h2><h2 id="بخش">بخش</h2><h2>بخش</h2><h3>سالم</h3>';
+$pass_one_c4 = dzn_theme_content_page_anchor_content( $complex_c4, array( 'main-content', 'post-7' ) );
+$pass_two_c4 = dzn_theme_content_page_anchor_content( $pass_one_c4['content'], array( 'main-content', 'post-7' ) );
+dzn_test_assert( $pass_one_c4['content'] === $pass_two_c4['content'], 'C4 mixed content must be idempotent.' );
+dzn_test_assert( array_column( $pass_one_c4['sections'], 'anchor' ) === array_column( $pass_two_c4['sections'], 'anchor' ), 'C4 mixed content must keep identical anchors on a second pass.' );
+preg_match_all( '/\sid="([^"]*)"/u', $pass_one_c4['content'], $c4_ids );
+dzn_test_assert( count( $c4_ids[1] ) === count( array_unique( $c4_ids[1] ) ), 'C4 mixed content must not emit duplicate ids: ' . implode( ', ', $c4_ids[1] ) );
+foreach ( $c4_ids[1] as $c4_id ) {
+	dzn_test_assert( ! in_array( $c4_id, array( 'main-content', 'post-7' ), true ), 'A C4 generated anchor must never take a reserved wrapper id.' );
+}
+
 echo "Content page render tests passed.\n";

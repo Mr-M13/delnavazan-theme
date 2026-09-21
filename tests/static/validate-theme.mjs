@@ -208,8 +208,14 @@ if (!contentPage.includes("apply_filters( 'the_content', $post->post_content )")
 for (const helper of ['dzn_theme_content_page_tag_end', 'dzn_theme_content_page_attribute', 'dzn_theme_content_page_ids', 'dzn_theme_content_page_reserved_ids']) {
 	if (!contentPage.includes(`function ${helper}(`)) throw new Error(`Missing quote-aware document helper: ${helper}`);
 }
+for (const helper of ['dzn_theme_content_page_tag_scan', 'dzn_theme_content_page_tag_gt_boundary']) {
+	if (!contentPage.includes(`function ${helper}(`)) throw new Error(`Missing lexical recovery boundary helper: ${helper}`);
+}
 if (!contentPage.includes('(?=[\\s\\/>])')) {
 	throw new Error('The heading scan must exclude non-heading tags such as <hr>.');
+}
+if (/preg_match_all\(\s*'<\(\/\?\)h\(\[1-6\]\)/.test(contentPage)) {
+	throw new Error('The tokenizer must not globally re-tokenize heading-looking text inside malformed lexemes.');
 }
 if (contentPage.includes('#<(h[1-6])\\b([^>]*)>')) {
 	throw new Error('Brittle opening-tag parsing must not return.');

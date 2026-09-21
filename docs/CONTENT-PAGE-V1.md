@@ -11,7 +11,7 @@ Theme review round only.
 
 | Finding | Correction |
 | --- | --- |
-| 1. Opening-tag parsing broke on `>` inside quoted attribute values | The heading scan is now quote-aware: the opening tag ends at the first `>` **outside** quotes, and the visible text comes from the heading's inner content, never from an attribute fragment. An implausible opening tag (longer than 2 KB, or with unbalanced quotes, including markup that WordPress texturised into `title="a > b&#8221;`) is skipped entirely rather than guessed. Attributes containing `>`, `<`, single quotes, entities, nested inline markup and mixed Persian/Latin text are covered by adversarial tests. |
+| 1. Opening-tag parsing broke on `>` inside quoted attribute values | The heading scan is now quote-aware: the opening tag ends at the first `>` **outside** quotes, and the visible text comes from the heading's inner content, never from an attribute fragment. An implausible opening tag (with unbalanced quotes, or with a nested `<` outside quotes, including markup that WordPress texturised into `title="a > b&#8221;`) is skipped entirely rather than guessed. Attributes containing `>`, `<`, single quotes, entities, nested inline markup and mixed Persian/Latin text are covered by adversarial tests. |
 | 2. ID collisions were only checked between H2/H3 | Anchors are now assigned against **every** id already present in the rendered document plus the ids this feature reserves (`dzn-toc-title-desktop`, `dzn-toc-title-mobile`, `dzn-related-title`), so a heading can never duplicate a non-heading id, a theme-owned id, another heading's authored id, or a generated anchor. The outline `href`s and `aria-labelledby` target the final unique ids, and resolution stays deterministic and idempotent. |
 | 3. Paginated documents stranded readers | Document modes now render `wp_link_pages()` after the content with a localised accessible `aria-label` and the current page marked. The deliberate carve-out is preserved: paginated content still receives no generated anchors and no outline. |
 | 4. Anchoring ran globally on `the_content` | The global filter is removed. Anchoring happens inside document rendering only (`dzn_theme_content_page_data()` renders through `apply_filters( 'the_content', … )` and anchors the result for this template). Archives, the front page, widgets, plugin-style secondary calls, feeds and REST responses keep untouched WordPress output, and Portal surfaces never reach the code path. |
@@ -34,7 +34,7 @@ failed on five findings. All five are corrected on additive descendants of that 
 
 | Finding | Correction |
 | --- | --- |
-| 1. A valid opposite quote inside a quoted value was rejected (`<h2 title="don't > stop">`) | The scanner is driven purely by the **active** delimiter: an apostrophe inside a double-quoted value (or a double quote inside a single-quoted value) is ordinary content, and `>`/`<` remain legal inside any quoted value. The global even-count quote assumption is gone. A tag that never closes (no `>` outside quotes, a nested `<` outside quotes, or more than 2 KB) is reported as malformed and left untouched. |
+| 1. A valid opposite quote inside a quoted value was rejected (`<h2 title="don't > stop">`) | The scanner is driven purely by the **active** delimiter: an apostrophe inside a double-quoted value (or a double quote inside a single-quoted value) is ordinary content, and `>`/`<` remain legal inside any quoted value. The global even-count quote assumption is gone. A tag that never closes (no `>` outside quotes, a nested `<` outside quotes) is reported as malformed and left untouched. |
 | 2. Malformed nested/overlapping headings corrupted output | Heading candidate ranges are grouped into clusters of overlapping ranges before any mutation. Only clusters containing exactly one heading are anchored; an ambiguous cluster is left byte-stable and contributes no outline entry, and a neighbouring unambiguous heading is still anchored. Verified for H2/H3 nesting in both directions, same-level nesting and crossing ranges. |
 | 3. Only content ids were reserved | A single explicit contract, `dzn_theme_content_page_reserved_ids( $post )`, now returns every id the template and its wrappers emit before anchors are assigned: `main-content`, the dynamic `post-{ID}` article wrapper, and the feature's own `dzn-toc-title-desktop`, `dzn-toc-title-mobile` and `dzn-related-title`. The anchoring path consumes that function (with a pure `dzn_theme_content_page_owned_ids()` fallback for direct calls), so a future wrapper id is added in one place. A runtime render of the whole `single.php` document proves final DOM id uniqueness. |
 | 4. The shared utilities layer was deleted | The previous correction truncated the file inside the print-block region and removed the utilities layer (`screen-reader-text`, `.screen-reader-text:focus`, `[hidden]`, `.site-branding__description`, `.menu-toggle__label`, navigation/footer link-colour compatibility, `.dzn-owned-media-slot`). The layer is restored **byte-identical** to the reviewed parent, the CSS diff against that parent now contains only the intended document rules, and a static check fails if a shared utility or the token layer shrinks. |
@@ -80,6 +80,38 @@ final-id uniqueness across a mixed malformed/valid document. The disposable Word
 additionally renders the reproduced cases end-to-end: the malformed tags survive untouched and
 unduplicated, the three valid neighbours are anchored and outlined in both outline variants, no
 malformed heading receives an id or an `href`, and the recovered document stays id-unique.
+
+## Correction round 4 (independent re-review FAIL — malformed-opening-tag recovery defect)
+
+The independent re-review of correction-round-3 candidate `eb778142a021ba8b71eba2d2659687dde8559328`
+failed on one new blocking parser-recovery defect. After rejecting a malformed heading opening tag, the
+tokenizer could still interpret heading-like text inside that malformed tag or its unterminated quoted
+attribute as genuine markup. The reviewer reproduced three inputs where malformed markup was mutated
+and erroneous anchors/outline entries were generated.
+
+**Correction.** Token discovery now walks the document left-to-right and scans every tag lexeme once.
+`dzn_theme_content_page_tag_scan()` returns either the tag's closing `>` or a malformed-lexeme boundary:
+
+- an unterminated quoted attribute or an unclosed tag consumes the remainder of the document, because
+  no trustworthy tag boundary exists before it;
+- a nested `<` outside quotes makes the opening tag malformed; tokenization resumes only after the
+  first `>` outside quotes following that `<`, so the malformed lexeme and any heading-looking bytes
+  inside it are skipped as one unit;
+- a malformed non-heading tag is scanned the same way, so a heading-looking substring inside its
+  attribute/text cannot leak back into the token stream.
+
+`dzn_theme_content_page_heading_tokens()` now reads every `<` in order and never re-tokenizes bytes
+inside a recorded malformed region. Well-formed H2/H3 tags are still paired by the C3 ordered stack,
+so mismatched closes, nesting, crossing, stray closes and unclosed openings keep their byte-stable
+behaviour, and a structurally separate valid neighbour is still anchored after recovery.
+
+**Adversarial matrix executed** (render suite, all passing): unterminated double- and single-quoted
+attributes containing literal H3/H2-looking text; a malformed opening tag with a nested `<` outside
+quotes; malformed tags followed by valid H2/H3 neighbours at both levels; multiple malformed regions
+separated by valid headings; `>`/`<` inside correctly terminated quoted attributes; C2 opposite-quote
+cases; the C3 reverse-crossing/mismatched/nested/stray-close/unclosed matrix; mixed-case H2/H3;
+Persian valid neighbours after malformed regions; a heading-looking substring inside a malformed
+non-heading tag; and idempotence plus final rendered id uniqueness.
 
 ## What the system provides
 
