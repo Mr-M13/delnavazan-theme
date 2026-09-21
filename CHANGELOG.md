@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.0 — correction round 5 (candidate, unmerged) — 2026-09-21
+
+- Independent re-review of the correction-round-4 candidate `4f89109fef9f6cf571b6b5213e736853a0bb1e18` failed on one blocking regression: the 2 KB fail-closed opening-tag limit was lost, so a >2 KB opening heading tag could be accepted and rewritten instead of remaining byte-stable.
+- `dzn_theme_content_page_tag_scan()` restores the 2048-byte bound through `dzn_theme_content_page_max_tag_bytes()`: an opening tag lexeme exceeding 2048 bytes before a trustworthy closing boundary is malformed and left byte-stable.
+- Recovery follows the C4 defensible-boundary rule and resumes after the first `>` outside quotes at or after the over-limit point, so valid neighbours still recover and pseudo-heading bytes inside an oversized lexeme are never tokenized.
+- Added C5 boundary and adversarial tests: exact 2048/2049-byte boundary, oversized H2/H3 tags, pseudo-headings inside oversized tags, valid neighbours, repeated oversized regions and the full C4 matrix.
+- The C5 diff is parser, tests and documentation only; no other theme file changed.
+
 ## 0.7.0 — correction round 4 (candidate, unmerged) — 2026-09-21
 
 - Independent re-review of the correction-round-3 candidate `eb778142a021ba8b71eba2d2659687dde8559328` failed on one blocking parser-recovery defect: after rejecting a malformed heading opening tag, the tokenizer could interpret heading-like text inside that malformed tag or its unterminated quoted attribute as genuine markup.

@@ -244,6 +244,19 @@ function dzn_theme_content_page_reserved_ids( $post = null ) {
 }
 
 /**
+ * Maximum byte length of a trustworthy opening-tag lexeme.
+ *
+ * An opening tag whose lexeme (from its opening `<` through its closing `>`) exceeds this length is
+ * classified malformed and left byte-stable, so an implausibly large authored tag can never be
+ * accepted or rewritten. This restores the fail-closed bound established by correction rounds 1/2.
+ *
+ * @return int
+ */
+function dzn_theme_content_page_max_tag_bytes() {
+	return 2048;
+}
+
+/**
  * Scan one opening tag starting at `$start` and return its closing `>` or the boundary of its
  * malformed lexeme.
  *
@@ -252,15 +265,26 @@ function dzn_theme_content_page_reserved_ids( $post = null ) {
  * the first offset from which tokenization may safely resume. Pseudo-tags embedded in a malformed
  * lexeme are never tokenized as markup.
  *
+ * A tag whose lexeme exceeds `dzn_theme_content_page_max_tag_bytes()` before a trustworthy closing
+ * boundary is also malformed. Its recovery boundary follows the same defensible rule as a nested `<`:
+ * tokenization resumes only after the first `>` outside quotes at or after the point where the limit
+ * was exceeded.
+ *
  * @param string $html  Rendered content.
  * @param int    $start Offset of the `<` that opens the tag.
  * @return array{end:int|false,malformed_end:int|null}
  */
 function dzn_theme_content_page_tag_scan( $html, $start ) {
-	$length = strlen( $html );
-	$quote  = '';
+	$length       = strlen( $html );
+	$max_open_end = (int) $start + dzn_theme_content_page_max_tag_bytes() - 1;
+	$quote        = '';
+	$oversized    = false;
 
 	for ( $index = (int) $start; $index < $length; $index++ ) {
+		if ( ! $oversized && $index > $max_open_end ) {
+			$oversized = true;
+		}
+
 		$character = $html[ $index ];
 
 		if ( '' !== $quote ) {
@@ -276,8 +300,9 @@ function dzn_theme_content_page_tag_scan( $html, $start ) {
 		}
 
 		// A new tag starting while this one is still open means it was never closed (the opening `<`
-		// of this very tag is not a nested tag).
-		if ( '<' === $character && $index > (int) $start ) {
+		// of this very tag is not a nested tag). Once an oversized lexeme is detected, however, an
+		// inner `<` is just more content of the oversized tag, not a separate recovery boundary.
+		if ( '<' === $character && $index > (int) $start && ! $oversized ) {
 			return array(
 				'end'          => false,
 				'malformed_end' => dzn_theme_content_page_tag_gt_boundary( $html, $index ),
@@ -285,6 +310,13 @@ function dzn_theme_content_page_tag_scan( $html, $start ) {
 		}
 
 		if ( '>' === $character ) {
+			if ( $oversized ) {
+				return array(
+					'end'          => false,
+					'malformed_end' => $index + 1,
+				);
+			}
+
 			return array(
 				'end'          => $index,
 				'malformed_end' => null,
@@ -292,7 +324,8 @@ function dzn_theme_content_page_tag_scan( $html, $start ) {
 		}
 	}
 
-	// Unterminated quoted attribute or unclosed tag: the malformed lexeme consumes the remainder.
+	// Unterminated quoted attribute, unclosed tag, or oversized lexeme with no trustworthy boundary:
+	// the malformed lexeme consumes the remainder.
 	return array(
 		'end'          => false,
 		'malformed_end' => $length,

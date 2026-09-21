@@ -439,4 +439,49 @@ foreach ( $c4_ids[1] as $c4_id ) {
 	dzn_test_assert( ! in_array( $c4_id, array( 'main-content', 'post-7' ), true ), 'A C4 generated anchor must never take a reserved wrapper id.' );
 }
 
+
+// ---------------------------------------------------------------------------
+// Correction round 5 — bounded fail-closed opening-tag scan.
+// ---------------------------------------------------------------------------
+
+$max_tag_bytes = dzn_theme_content_page_max_tag_bytes();
+dzn_test_assert( 2048 === $max_tag_bytes, 'The opening-tag fail-closed limit must stay 2048 bytes.' );
+
+// Exact boundary: an opening tag lexeme of exactly 2048 bytes is valid.
+$at_limit_value = str_repeat( 'a', $max_tag_bytes - 14 );
+$at_limit_open  = '<h2 data-x="' . $at_limit_value . '">';
+dzn_test_assert( $max_tag_bytes === strlen( $at_limit_open ), 'The exact-limit fixture must be exactly 2048 bytes: ' . strlen( $at_limit_open ) );
+$at_limit = dzn_theme_content_page_anchor_content( $at_limit_open . 'Boundary</h2>' );
+dzn_test_assert( array( 'boundary' ) === array_column( $at_limit['sections'], 'anchor' ), 'An opening tag at the exact 2048-byte limit must remain valid.' );
+
+// One byte past the limit is malformed and byte-stable, but a separate valid neighbour still recovers.
+$over_value = str_repeat( 'a', $max_tag_bytes - 13 );
+$over_open  = '<h2 data-x="' . $over_value . '">';
+dzn_test_assert( $max_tag_bytes < strlen( $over_open ), 'The over-limit fixture must exceed 2048 bytes.' );
+$over = dzn_theme_content_page_anchor_content( $over_open . 'Oversized</h2><h2>Neighbour</h2>' );
+dzn_test_assert( array( 'neighbour' ) === array_column( $over['sections'], 'anchor' ), 'An oversized H2 must not be anchored while its valid neighbour is.' );
+dzn_test_assert( false === strpos( $over['content'], 'id="oversized"' ), 'The oversized H2 must never receive an id.' );
+dzn_test_assert( false !== strpos( $over['content'], '<h2 id="neighbour">Neighbour</h2>' ), 'The valid H2 neighbour must be anchored after the oversized region.' );
+dzn_test_assert( false !== strpos( $over['content'], $over_open . 'Oversized</h2>' ), 'The oversized H2 must stay byte-stable.' );
+
+// The mirrored oversized H3 case behaves identically.
+$h3_over = dzn_theme_content_page_anchor_content( '<h3 data-x="' . $over_value . '">Oversized</h3><h3>Neighbour</h3>' );
+dzn_test_assert( array( 'neighbour' ) === array_column( $h3_over['sections'], 'anchor' ), 'An oversized H3 must not be anchored while its valid neighbour is.' );
+dzn_test_assert( false === strpos( $h3_over['content'], 'id="oversized"' ), 'The oversized H3 must never receive an id.' );
+dzn_test_assert( false !== strpos( $h3_over['content'], '<h3 id="neighbour">Neighbour</h3>' ), 'The valid H3 neighbour must be anchored after the oversized region.' );
+
+// Pseudo-heading bytes inside an oversized malformed tag are never tokenized as markup.
+$pseudo_value = str_repeat( 'a', $max_tag_bytes - 10 );
+$pseudo = dzn_theme_content_page_anchor_content( '<h2 data-x="' . $pseudo_value . '<h3>Ghost</h3>">Real</h2><h2>Valid</h2>' );
+dzn_test_assert( array( 'valid' ) === array_column( $pseudo['sections'], 'anchor' ), 'Pseudo-heading bytes inside an oversized tag must never be outlined.' );
+dzn_test_assert( false === strpos( $pseudo['content'], 'id="ghost"' ), 'The pseudo H3 inside the oversized tag must never receive an id.' );
+dzn_test_assert( false !== strpos( $pseudo['content'], '<h3>Ghost</h3>' ), 'The pseudo H3 bytes must remain byte-stable.' );
+dzn_test_assert( false !== strpos( $pseudo['content'], '<h2 id="valid">Valid</h2>' ), 'The valid neighbour after the oversized pseudo region must be anchored.' );
+
+// Repeated oversized regions must not prevent the valid headings between them from being anchored.
+$repeated = '<h2 data-x="' . $over_value . '">A</h2><h2>One</h2><h3 data-x="' . $over_value . '">B</h3><h3>Two</h3>';
+$repeated_result = dzn_theme_content_page_anchor_content( $repeated );
+dzn_test_assert( array( 'one', 'two' ) === array_column( $repeated_result['sections'], 'anchor' ), 'Repeated oversized regions must not prevent valid headings from being anchored.' );
+dzn_test_assert( false === strpos( $repeated_result['content'], 'id="a"' ) && false === strpos( $repeated_result['content'], 'id="b"' ), 'Repeated oversized headings must never receive ids.' );
+
 echo "Content page render tests passed.\n";

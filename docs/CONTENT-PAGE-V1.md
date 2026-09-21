@@ -113,6 +113,27 @@ cases; the C3 reverse-crossing/mismatched/nested/stray-close/unclosed matrix; mi
 Persian valid neighbours after malformed regions; a heading-looking substring inside a malformed
 non-heading tag; and idempotence plus final rendered id uniqueness.
 
+## Correction round 5 (independent re-review FAIL — oversized-opening-tag regression)
+
+The independent re-review of correction-round-4 candidate `4f89109fef9f6cf571b6b5213e736853a0bb1e18`
+failed on one blocking regression: `dzn_theme_content_page_tag_scan()` lost the 2 KB fail-closed
+opening-tag limit that correction rounds 1/2 established, so a >2 KB opening heading tag could be
+accepted and rewritten instead of remaining byte-stable.
+
+**Correction.** `dzn_theme_content_page_tag_scan()` restores the 2048-byte bound through
+`dzn_theme_content_page_max_tag_bytes()`. An opening tag whose lexeme (its opening `<` through its
+closing `>`) exceeds 2048 bytes before a trustworthy closing boundary is classified malformed and left
+byte-stable. Recovery follows the same defensible-boundary rule as C4: tokenization resumes only after
+the first `>` outside quotes at or after the point where the limit was exceeded, so a structurally
+separate valid neighbour is still anchored while pseudo-heading bytes inside the oversized lexeme are
+never tokenized.
+
+Boundary semantics are explicit: an opening tag lexeme of exactly 2048 bytes is valid, and 2049 bytes
+is malformed. The C5 adversarial tests cover exact-boundary validity, oversized H2 and H3 tags with a
+valid closing `>` after the limit, pseudo-heading bytes inside an oversized malformed tag, oversized
+tags followed by valid H2/H3 neighbours, repeated oversized regions, and every C4 adversarial case
+remaining green.
+
 ## What the system provides
 
 | Capability | Implementation |
