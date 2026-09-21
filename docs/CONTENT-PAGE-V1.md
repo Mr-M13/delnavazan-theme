@@ -68,12 +68,26 @@ Executed:
   three-section gate, the mode contracts, and both outline variants including the empty-outline case.
 - `php tests/render/portal-corrections.php`, `php tests/render/teacher-portal-corrections.php` —
   pass unchanged (portal regressions).
+- `php` lint of all 62 theme PHP files in a `php:8.3-cli` container — no failures.
 - CSS brace balance and the token/palette parity check — pass.
+
+- Real WordPress rendering (disposable WordPress 6.8.3 + MariaDB 11.4.13, the candidate theme the only
+  active theme, driven with WP-CLI outside the repository): the theme's own `single.php` resolves for a
+  single post, the Policy page template resolves for a page carrying
+  `_wp_page_template = page-templates/content-policy.php`, and a plain page keeps `page.php`. Article
+  rendering produced both outline variants, the native disclosure, the labelled desktop outline,
+  reading time, category presentation and related content; every outline `href="#…"` had a matching
+  rendered `id`, Persian headings received Persian anchors, and the repeated heading resolved to
+  `id="انتخاب-ساز-2"`. General mode stayed neutral with an outline, Policy mode rendered revision
+  metadata and the print hint with no categories, related content, reading time or featured image, and
+  a `<!--nextpage-->` post produced no generated outline and no rewritten heading markup.
+- Local package build: `delnavazan-production-theme-0.7.0.zip` (byte-verified `Version: 0.7.0` inside
+  the archive) with its SHA-256 recorded; `dist/` remains ignored by Git.
 
 Not executable here (explicit staging gates, not assumed passes):
 
-- real WordPress rendering, editor parity and Gutenberg block output;
-- browser visual, responsive, RTL and screen-reader verification;
+- browser visual, responsive, RTL and screen-reader verification (no browser runtime in this workspace);
+- editor/Gutenberg visual parity and block-pattern inspection;
 - print-to-PDF inspection;
 - package installation on staging.
 
