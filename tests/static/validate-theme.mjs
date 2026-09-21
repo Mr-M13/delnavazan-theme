@@ -214,8 +214,32 @@ if (!contentPage.includes('(?=[\\s\\/>])')) {
 if (contentPage.includes('#<(h[1-6])\\b([^>]*)>')) {
 	throw new Error('Brittle opening-tag parsing must not return.');
 }
-if (!contentPage.includes('dzn_theme_content_page_reserved_ids()')) {
-	throw new Error('Theme-owned ids must be reserved before anchors are assigned.');
+if (!contentPage.includes('function dzn_theme_content_page_reserved_ids( $post = null )')) {
+	throw new Error('The template-owned id contract must be one explicit function.');
+}
+if (!contentPage.includes("'main-content'") || !contentPage.includes("'post-' . (int) $post->ID")) {
+	throw new Error('The reserved contract must cover the document wrapper ids, including the dynamic post wrapper.');
+}
+if (!contentPage.includes('dzn_theme_content_page_anchor_content( $content, dzn_theme_content_page_reserved_ids( $post ) )')) {
+	throw new Error('Anchoring must consume the template-owned id contract.');
+}
+if (!contentPage.includes('function dzn_theme_content_page_is_document_response( $post = null )')) {
+	throw new Error('One shared document-response predicate is required.');
+}
+if (!contentPage.includes('if ( ! dzn_theme_content_page_is_document_response() ) {')) {
+	throw new Error('The print marker must be driven by the shared predicate.');
+}
+if (/is_singular\(|is_front_page\(/.test(contentPage.replace(contentPage.slice(contentPage.indexOf('function dzn_theme_content_page_is_document_response'), contentPage.indexOf('function dzn_theme_content_page_body_class')), ''))) {
+	throw new Error('Document-response guards must live only in the shared predicate.');
+}
+if (contentPage.includes('substr_count( $span')) {
+	throw new Error('Global quote-count validation must not return.');
+}
+if (!contentPage.includes("'<' === $character && $index > (int) $start")) {
+	throw new Error('The scanner must fail safe when a tag never closes.');
+}
+if (!contentPage.includes('$clusters[] = $cluster;') || !contentPage.includes('1 === count( $candidate_cluster )')) {
+	throw new Error('Ambiguous nested/overlapping heading ranges must be excluded.');
 }
 if (!documentPartial.includes('$dzn_document_data[\'content\']') || !documentPartial.includes('the_content();')) {
 	throw new Error('The document body must render the anchored pipeline output and keep the paginated path.');
@@ -322,6 +346,14 @@ if (!documentCss.includes('direction:\n      inherit') || !documentCss.includes(
 }
 if (!documentCss.includes('overflow-x') || !documentCss.includes('.dzn-document__pagination')) {
 	throw new Error('Table overflow and pagination styles are missing.');
+}
+for (const preserved of ['.screen-reader-text', '.screen-reader-text:focus', '[hidden]', '.site-branding__description', '.menu-toggle__label', '.dzn-owned-media-slot']) {
+	if (!css.includes(preserved)) {
+		throw new Error(`A shared theme utility or compatibility rule was removed: ${preserved}`);
+	}
+}
+if ((css.match(/--dzn-color-([a-z-]+):/g) ?? []).length < 18) {
+	throw new Error('The token layer must keep every semantic colour token.');
 }
 const portalCssForDocument = fs.readFileSync(path.join(theme, 'assets/css/portal.css'), 'utf8');
 if (/dzn-document/.test(portalCssForDocument)) {

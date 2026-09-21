@@ -21,6 +21,18 @@ function wp_strip_all_tags( $value, $remove_breaks = false ) {
 }
 function number_format_i18n( $number ) { return (string) $number; }
 function __( $text ) { return $text; }
+$GLOBALS['dzn_test_post']           = null;
+$GLOBALS['dzn_test_is_singular']    = false;
+$GLOBALS['dzn_test_is_front_page']  = false;
+$GLOBALS['dzn_test_page_template']  = '';
+$GLOBALS['dzn_test_portal']         = false;
+$GLOBALS['dzn_test_teacher_portal'] = false;
+function get_post( $post = null ) { return $GLOBALS['dzn_test_post']; }
+function is_singular( $types = '' ) { return (bool) $GLOBALS['dzn_test_is_singular']; }
+function is_front_page() { return (bool) $GLOBALS['dzn_test_is_front_page']; }
+function get_page_template() { return (string) $GLOBALS['dzn_test_page_template']; }
+function dzn_theme_is_portal_template() { return (bool) $GLOBALS['dzn_test_portal']; }
+function dzn_theme_is_teacher_portal_template() { return (bool) $GLOBALS['dzn_test_teacher_portal']; }
 
 require DZN_TEST_THEME . 'inc/content-page.php';
 
@@ -189,5 +201,82 @@ require DZN_TEST_THEME . 'template-parts/content/table-of-contents.php';
 $mobile_collision = ob_get_clean();
 dzn_test_assert( false !== strpos( $mobile_collision, 'href="#بخش-2"' ) && false !== strpos( $mobile_collision, 'href="#بخش"' ), 'The outline must link the resolved unique anchors.' );
 dzn_test_assert( false !== strpos( $mobile_collision, 'id="dzn-toc-title-mobile"' ), 'The mobile outline panel must expose its reserved id.' );
+
+
+// ---------------------------------------------------------------------------
+// Correction round 2 — opposite quotes, malformed nesting, template-reserved ids, predicate.
+// ---------------------------------------------------------------------------
+
+// A valid opposite quote inside a quoted value must not invalidate the heading.
+$opposite = dzn_theme_content_page_anchor_content( '<h2 title="don\'t > stop">Valid heading</h2>' );
+dzn_test_assert( 1 === count( $opposite['sections'] ), 'An apostrophe inside a double-quoted attribute must not reject the heading.' );
+dzn_test_assert( 'Valid heading' === $opposite['sections'][0]['text'], 'The outline text must be the visible heading text.' );
+dzn_test_assert( 'valid-heading' === $opposite['sections'][0]['anchor'], 'A heading with an opposite quote must still be anchored.' );
+dzn_test_assert( false !== strpos( $opposite['content'], 'title="don\'t > stop"' ), 'The apostrophe attribute must be preserved.' );
+
+$single_quoted = dzn_theme_content_page_anchor_content( "<h3 title='say \"hi\" > now'>متن الف</h3>" );
+dzn_test_assert( 1 === count( $single_quoted['sections'] ), 'Double quotes inside a single-quoted value must be handled.' );
+dzn_test_assert( 'متن-الف' === $single_quoted['sections'][0]['anchor'], 'A single-quoted value with ">" must still anchor.' );
+
+$mixed_quotes = dzn_theme_content_page_anchor_content(
+	'<h2 data-a="it\'s > fine" data-b=\'he said "go" > now\' title="x < y">بخش 3 &amp; پیوست</h2>'
+);
+dzn_test_assert( 1 === count( $mixed_quotes['sections'] ), 'Opposite quotes mixed with entities and < must parse.' );
+dzn_test_assert( 'بخش-3-پیوست' === $mixed_quotes['sections'][0]['anchor'], 'Mixed adversarial markup must still produce a clean anchor: ' . $mixed_quotes['sections'][0]['anchor'] );
+
+// Malformed nested and crossing headings must fail safe, byte-stable, with no outline entries.
+$nested = '<h2>Outer <h3>Inner</h3> tail</h2>';
+dzn_test_assert( array( 'content' => $nested, 'sections' => array() ) === dzn_theme_content_page_anchor_content( $nested ), 'Nested headings must be left byte-stable with no outline entries.' );
+$nested_reverse = '<h3>Inner <h2>Outer</h2> tail</h3>';
+dzn_test_assert( array( 'content' => $nested_reverse, 'sections' => array() ) === dzn_theme_content_page_anchor_content( $nested_reverse ), 'Reversed nesting must fail safe.' );
+$same_level = '<h2>First <h2>Second</h2> tail</h2>';
+dzn_test_assert( array( 'content' => $same_level, 'sections' => array() ) === dzn_theme_content_page_anchor_content( $same_level ), 'Same-level nesting must fail safe.' );
+$crossing = '<h2>First<h3>Second</h2> tail</h3>';
+dzn_test_assert( array( 'content' => $crossing, 'sections' => array() ) === dzn_theme_content_page_anchor_content( $crossing ), 'Crossing heading ranges must fail safe.' );
+$neighbours = dzn_theme_content_page_anchor_content( '<h2>Outer <h3>Inner</h3> tail</h2><h2>سالم</h2>' );
+dzn_test_assert( 1 === count( $neighbours['sections'] ) && 'سالم' === $neighbours['sections'][0]['anchor'], 'A malformed cluster must not prevent an unambiguous neighbour from being anchored.' );
+dzn_test_assert( false !== strpos( $neighbours['content'], '<h2>Outer <h3>Inner</h3> tail</h2>' ), 'The malformed cluster itself must stay untouched.' );
+
+// The template-reserved id contract covers wrapper ids, including the dynamic post wrapper.
+$GLOBALS['dzn_test_post'] = (object) array( 'ID' => 42, 'post_type' => 'post' );
+$reserved_contract       = dzn_theme_content_page_reserved_ids();
+foreach ( array( 'main-content', 'post-42', 'dzn-toc-title-desktop', 'dzn-toc-title-mobile', 'dzn-related-title' ) as $template_id ) {
+	dzn_test_assert( in_array( $template_id, $reserved_contract, true ), "The reserved contract must cover {$template_id}." );
+}
+dzn_test_assert( in_array( 'post-42', dzn_theme_content_page_reserved_ids( 42 ), true ), 'The contract must resolve a post id argument.' );
+
+$post_wrapper_collision = dzn_theme_content_page_anchor_content( '<h2 id="post-42">عنوان</h2>', $reserved_contract );
+dzn_test_assert( 'post-42-2' === $post_wrapper_collision['sections'][0]['anchor'], 'A heading must never collide with the article wrapper id: ' . $post_wrapper_collision['sections'][0]['anchor'] );
+$main_collision = dzn_theme_content_page_anchor_content( '<h2 id="main-content">عنوان</h2>', $reserved_contract );
+dzn_test_assert( 'main-content-2' === $main_collision['sections'][0]['anchor'], 'A heading must never collide with the main landmark id.' );
+$generated_wrapper = dzn_theme_content_page_anchor_content( '<h2>Main Content</h2>', $reserved_contract );
+dzn_test_assert( 'main-content-2' === $generated_wrapper['sections'][0]['anchor'], 'A generated anchor must avoid a wrapper id: ' . $generated_wrapper['sections'][0]['anchor'] );
+
+// One shared predicate decides whether the response renders the document system.
+$GLOBALS['dzn_test_post']          = (object) array( 'ID' => 42, 'post_type' => 'post' );
+$GLOBALS['dzn_test_is_singular']   = true;
+$GLOBALS['dzn_test_is_front_page'] = false;
+$GLOBALS['dzn_test_page_template'] = '';
+dzn_test_assert( true === dzn_theme_content_page_is_document_response(), 'A single post must be a document response.' );
+$GLOBALS['dzn_test_post'] = (object) array( 'ID' => 42, 'post_type' => 'page' );
+$GLOBALS['dzn_test_page_template'] = '/themes/x/page.php';
+dzn_test_assert( true === dzn_theme_content_page_is_document_response(), 'A default page template must be a document response.' );
+$GLOBALS['dzn_test_page_template'] = '/themes/x/page-templates/content-policy.php';
+dzn_test_assert( true === dzn_theme_content_page_is_document_response(), 'The Policy template must be a document response.' );
+$GLOBALS['dzn_test_page_template'] = '/themes/x/page-templates/some-plugin-template.php';
+dzn_test_assert( false === dzn_theme_content_page_is_document_response(), 'A custom or plugin page template must not be a document response.' );
+$GLOBALS['dzn_test_page_template'] = '/themes/x/page.php';
+$GLOBALS['dzn_test_portal']        = true;
+dzn_test_assert( false === dzn_theme_content_page_is_document_response(), 'Student Portal screens must not be document responses.' );
+$GLOBALS['dzn_test_portal']        = false;
+$GLOBALS['dzn_test_teacher_portal'] = true;
+dzn_test_assert( false === dzn_theme_content_page_is_document_response(), 'Teacher Portal screens must not be document responses.' );
+$GLOBALS['dzn_test_teacher_portal'] = false;
+$GLOBALS['dzn_test_is_front_page']  = true;
+dzn_test_assert( false === dzn_theme_content_page_is_document_response(), 'The front page must not be a document response.' );
+$GLOBALS['dzn_test_is_front_page']  = false;
+$GLOBALS['dzn_test_is_singular']    = false;
+dzn_test_assert( false === dzn_theme_content_page_is_document_response(), 'Non-singular requests must not be document responses.' );
+$GLOBALS['dzn_test_is_singular'] = true;
 
 echo "Content page render tests passed.\n";

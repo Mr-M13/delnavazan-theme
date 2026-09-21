@@ -6486,6 +6486,146 @@
   }
 
 
+/* =========================================================
+   UTILITIES
+   ========================================================= */
+
+@layer utilities {
+
+  .screen-reader-text {
+    position:
+      absolute !important;
+
+    inline-size:
+      1px;
+
+    block-size:
+      1px;
+
+    overflow:
+      hidden;
+
+    clip:
+      rect(
+        1px,
+        1px,
+        1px,
+        1px
+      );
+
+    white-space:
+      nowrap;
+  }
+
+  .screen-reader-text:focus {
+    z-index:
+      100000;
+
+    inset-block-start:
+      .5rem;
+
+    inset-inline-start:
+      .5rem;
+
+    inline-size:
+      auto;
+
+    block-size:
+      auto;
+
+    clip:
+      auto;
+
+    background:
+      var(--dzn-color-surface-elevated);
+
+    color:
+      var(--dzn-color-text-primary);
+
+    padding:
+      .75rem 1rem;
+  }
+
+  [hidden] {
+    display:
+      none !important;
+  }
+
+  @media (max-width: 30rem) {
+
+    .site-branding__description,
+    .menu-toggle__label {
+      display:
+        none;
+    }
+  }
+}
+
+
+/* =========================================================
+   WORDPRESS GLOBAL-STYLE COMPATIBILITY
+   ========================================================= */
+
+.primary-navigation
+a:not(.dzn-nav-action),
+
+.primary-navigation
+a:not(.dzn-nav-action):visited {
+  color:
+    var(--dzn-color-text-secondary);
+}
+
+.primary-navigation
+a:not(.dzn-nav-action):hover {
+  color:
+    var(--dzn-color-action-primary);
+}
+
+.primary-navigation
+a.dzn-nav-action,
+
+.primary-navigation
+a.dzn-nav-action:visited,
+
+.primary-navigation
+a.dzn-nav-action:hover,
+
+.primary-navigation
+a.dzn-nav-action:focus-visible {
+  color:
+    var(--dzn-color-on-action);
+}
+
+.site-footer
+:where(
+  a,
+  a:visited
+) {
+  color:
+    #ffffff;
+}
+
+.site-footer
+:where(
+  a:hover,
+  a:focus-visible
+) {
+  color:
+    #fff8ed;
+}
+
+.dzn-owned-media-slot
+> .wp-block-image {
+  inline-size:
+    100%;
+
+  block-size:
+    100%;
+
+  margin:
+    0;
+}
+
 
 /* =========================================================
    PRINT (DOCUMENT MODES ONLY)
