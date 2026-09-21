@@ -213,14 +213,34 @@ function dzn_theme_content_page_heading_attributes( $attributes, $anchor ) {
 }
 
 /**
- * Theme-owned ids this feature reserves on a document.
- *
- * A generated anchor may never take one of these, and no heading may collide with them.
+ * The ids this feature itself emits on a document, without touching WordPress state.
  *
  * @return string[]
  */
-function dzn_theme_content_page_reserved_ids() {
+function dzn_theme_content_page_owned_ids() {
 	return array( 'dzn-toc-title-desktop', 'dzn-toc-title-mobile', 'dzn-related-title' );
+}
+
+/**
+ * Every id the document template and its wrappers emit before heading anchors are assigned.
+ *
+ * This is the single contract for template-owned ids: the document wrappers (`main-content` and the
+ * `post-{ID}` article wrapper) plus the ids this feature emits itself (the desktop and mobile outline
+ * titles and the related-content title). A future wrapper id must be added here, which is why the
+ * anchoring path consumes this function instead of a literal list.
+ *
+ * @param int|WP_Post|null $post Post object or ID. Defaults to the current post.
+ * @return string[]
+ */
+function dzn_theme_content_page_reserved_ids( $post = null ) {
+	$post = $post ? get_post( $post ) : get_post();
+	$ids  = array_merge( array( 'main-content' ), dzn_theme_content_page_owned_ids() );
+
+	if ( $post ) {
+		$ids[] = 'post-' . (int) $post->ID;
+	}
+
+	return array_values( array_unique( array_filter( array_map( 'strval', $ids ), 'strlen' ) ) );
 }
 
 /**
@@ -235,12 +255,19 @@ function dzn_theme_content_page_reserved_ids() {
  */
 function dzn_theme_content_page_tag_end( $html, $start ) {
 	$length = strlen( $html );
+	$limit  = (int) $start + 2048;
 	$quote  = '';
 
 	for ( $index = (int) $start; $index < $length; $index++ ) {
+		if ( $index > $limit ) {
+			return false;
+		}
+
 		$character = $html[ $index ];
 
 		if ( '' !== $quote ) {
+			// Only the active delimiter closes the value: an apostrophe inside a double-quoted value
+			// (or a double quote inside a single-quoted value) is ordinary content.
 			if ( $character === $quote ) {
 				$quote = '';
 			}
@@ -250,6 +277,12 @@ function dzn_theme_content_page_tag_end( $html, $start ) {
 		if ( '"' === $character || "'" === $character ) {
 			$quote = $character;
 			continue;
+		}
+
+		// A new tag starting while this one is still open means it was never closed (the opening `<`
+		// of this very tag is not a nested tag).
+		if ( '<' === $character && $index > (int) $start ) {
+			return false;
 		}
 
 		if ( '>' === $character ) {
@@ -354,17 +387,6 @@ function dzn_theme_content_page_anchor_content( $content, array $reserved = arra
 				continue;
 			}
 
-			// Fail safe on an implausible opening tag. A real heading tag is short and its quotes are
-			// balanced; this stops an unbalanced quote (for example markup that WordPress texturised
-			// into `title="a > b&#8221;`) from swallowing later markup.
-			$span = substr( $content, $start, $open_end - $start + 1 );
-
-			if ( strlen( $span ) > 2048
-				|| 0 !== substr_count( $span, '"' ) % 2
-				|| 0 !== substr_count( $span, "'" ) % 2
-			) {
-				continue;
-			}
 
 			if ( ! preg_match( '/<\/h' . $level . '\s*>/i', $content, $closing, PREG_OFFSET_CAPTURE, $open_end ) ) {
 				continue;
@@ -380,6 +402,44 @@ function dzn_theme_content_page_anchor_content( $content, array $reserved = arra
 				'attributes' => substr( $content, $start + 3, $open_end - ( $start + 3 ) ),
 				'inner'      => substr( $content, $open_end + 1, $close_start - ( $open_end + 1 ) ),
 			);
+		}
+	}
+
+	if ( ! $headings ) {
+		return array( 'content' => $content, 'sections' => array() );
+	}
+
+	// Malformed nested or crossing headings must fail safe. Group candidates into clusters of
+	// overlapping ranges and keep only clusters that hold exactly one heading, so an ambiguous
+	// structure is left exactly as authored and contributes no outline entry.
+	$clusters = array();
+	$cluster  = array();
+	$end      = -1;
+
+	foreach ( $headings as $heading ) {
+		if ( $cluster && $heading['start'] < $end ) {
+			$cluster[] = $heading;
+			$end       = max( $end, $heading['close_end'] );
+			continue;
+		}
+
+		if ( $cluster ) {
+			$clusters[] = $cluster;
+		}
+
+		$cluster = array( $heading );
+		$end     = $heading['close_end'];
+	}
+
+	if ( $cluster ) {
+		$clusters[] = $cluster;
+	}
+
+	$headings = array();
+
+	foreach ( $clusters as $candidate_cluster ) {
+		if ( 1 === count( $candidate_cluster ) ) {
+			$headings[] = $candidate_cluster[0];
 		}
 	}
 
@@ -404,7 +464,7 @@ function dzn_theme_content_page_anchor_content( $content, array $reserved = arra
 		}
 	}
 
-	foreach ( array_merge( $reserved, dzn_theme_content_page_reserved_ids() ) as $name ) {
+	foreach ( array_merge( $reserved, dzn_theme_content_page_owned_ids() ) as $name ) {
 		$name = trim( (string) $name );
 
 		if ( '' !== $name ) {
@@ -530,7 +590,7 @@ function dzn_theme_content_page_document( $post, $content ) {
 	$key     = ( $post ? (int) $post->ID : 0 ) . ':' . md5( $content );
 
 	if ( ! isset( $documents[ $key ] ) ) {
-		$anchored = dzn_theme_content_page_anchor_content( $content, dzn_theme_content_page_reserved_ids() );
+		$anchored = dzn_theme_content_page_anchor_content( $content, dzn_theme_content_page_reserved_ids( $post ) );
 
 		$documents[ $key ] = array(
 			'content'  => $anchored['content'],
@@ -588,30 +648,57 @@ function dzn_theme_content_page_data( $post = null ) {
 }
 
 /**
- * Mark document-rendered responses so document-scoped print rules cannot leak to other surfaces.
+ * Whether the current response actually renders the document system.
  *
- * The Student Portal, Teacher Portal, homepage, archives, feeds, REST responses and the WordPress
- * admin never receive this class, which is what keeps their print output unchanged.
+ * This is the single predicate behind the print marker and it mirrors what the templates do: single
+ * posts always render the document template, and pages render it only through the theme's default
+ * `page.php` or the Policy template. The front page, archives and non-singular requests never do, the
+ * Student and Teacher Portals are excluded explicitly, and a custom or plugin page template outside
+ * this system is excluded because its resolved template is not one of ours.
+ *
+ * @param int|WP_Post|null $post Post object or ID. Defaults to the current post.
+ * @return bool
+ */
+function dzn_theme_content_page_is_document_response( $post = null ) {
+	$post = $post ? get_post( $post ) : get_post();
+
+	if ( ! $post || ! is_singular() || is_front_page() ) {
+		return false;
+	}
+
+	if ( function_exists( 'dzn_theme_is_portal_template' ) && dzn_theme_is_portal_template() ) {
+		return false;
+	}
+
+	if ( function_exists( 'dzn_theme_is_teacher_portal_template' ) && dzn_theme_is_teacher_portal_template() ) {
+		return false;
+	}
+
+	if ( 'post' === $post->post_type ) {
+		return true;
+	}
+
+	if ( 'page' !== $post->post_type ) {
+		return false;
+	}
+
+	$resolved = function_exists( 'get_page_template' ) ? (string) get_page_template() : '';
+
+	return in_array( basename( $resolved ), array( 'page.php', 'content-policy.php' ), true );
+}
+
+/**
+ * Mark document-rendered responses so document-scoped print rules cannot leak to other surfaces.
  *
  * @param string[] $classes Body classes.
  * @return string[]
  */
 function dzn_theme_content_page_body_class( $classes ) {
-	if ( is_admin() || ! is_singular() || is_front_page() ) {
+	if ( is_admin() ) {
 		return $classes;
 	}
 
-	if ( function_exists( 'dzn_theme_is_portal_template' ) && dzn_theme_is_portal_template() ) {
-		return $classes;
-	}
-
-	if ( function_exists( 'dzn_theme_is_teacher_portal_template' ) && dzn_theme_is_teacher_portal_template() ) {
-		return $classes;
-	}
-
-	$post = get_post();
-
-	if ( ! $post || ! in_array( (string) $post->post_type, array( 'post', 'page' ), true ) ) {
+	if ( ! dzn_theme_content_page_is_document_response() ) {
 		return $classes;
 	}
 
