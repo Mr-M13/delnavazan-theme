@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.7.0 — correction round 1 (candidate, unmerged) — 2026-09-21
+
+- Independent review of `8e0af6253ff9c0243ff25000bf15a681efcf376b` failed on six findings; all six are corrected additively.
+- Heading parsing is quote-aware and fails safe on implausible tags, so a legal `>` or `<` inside a `title`/`data` attribute (or WordPress texturising it into `&#8221;`) can no longer corrupt an anchor or the outline text; malformed headings are left exactly as authored.
+- Anchors are assigned against every id already present in the rendered document plus the ids this feature reserves, so no heading can duplicate a non-heading element, a theme-owned id, another heading or a generated anchor; the outline links and `aria-labelledby` always target the final unique ids.
+- Paginated documents now render `wp_link_pages()` with a localised accessible label and a marked current page, keeping the no-generated-anchor carve-out.
+- Anchoring no longer runs on the global `the_content` pipeline: it is scoped to document rendering, so the front page, archives, widgets, plugin-style secondary calls, feeds and REST responses stay untouched.
+- Document tables inherit RTL direction and alignment (LTR only through an explicit opt-in), and every print rule is scoped to `body.dzn-document-body` so Portal and homepage print output is unchanged.
+- Validation re-run locally: static theme validation, portal dialog tests, `node --check`, PHP lint (62 files), all three render suites, the real-WordPress render check with the new pagination/isolation/print/table assertions, package build and a fresh-clone rerun.
+
 ## 0.7.0 — 2026-09-21 — Single Content Page V1 (candidate, unmerged)
 
 - Added one reusable Persian RTL document system for Article, Policy and General/Help content pages, sharing the existing header, footer, palette, typography and prose rules.

@@ -2,6 +2,23 @@
 
 Theme version **0.7.0**. Presentation only. No deployment, no production cutover.
 
+## Correction round 1 (independent review FAIL)
+
+The independent review of candidate `8e0af6253ff9c0243ff25000bf15a681efcf376b` failed on six findings.
+All six are corrected on additive descendants of that commit. Correction round 1, Correction round 2,
+Correction round 3 and Correction round 4 of the *platform* work are unrelated; this section records the
+Theme review round only.
+
+| Finding | Correction |
+| --- | --- |
+| 1. Opening-tag parsing broke on `>` inside quoted attribute values | The heading scan is now quote-aware: the opening tag ends at the first `>` **outside** quotes, and the visible text comes from the heading's inner content, never from an attribute fragment. An implausible opening tag (longer than 2 KB, or with unbalanced quotes, including markup that WordPress texturised into `title="a > b&#8221;`) is skipped entirely rather than guessed. Attributes containing `>`, `<`, single quotes, entities, nested inline markup and mixed Persian/Latin text are covered by adversarial tests. |
+| 2. ID collisions were only checked between H2/H3 | Anchors are now assigned against **every** id already present in the rendered document plus the ids this feature reserves (`dzn-toc-title-desktop`, `dzn-toc-title-mobile`, `dzn-related-title`), so a heading can never duplicate a non-heading id, a theme-owned id, another heading's authored id, or a generated anchor. The outline `href`s and `aria-labelledby` target the final unique ids, and resolution stays deterministic and idempotent. |
+| 3. Paginated documents stranded readers | Document modes now render `wp_link_pages()` after the content with a localised accessible `aria-label` and the current page marked. The deliberate carve-out is preserved: paginated content still receives no generated anchors and no outline. |
+| 4. Anchoring ran globally on `the_content` | The global filter is removed. Anchoring happens inside document rendering only (`dzn_theme_content_page_data()` renders through `apply_filters( 'the_content', … )` and anchors the result for this template). Archives, the front page, widgets, plugin-style secondary calls, feeds and REST responses keep untouched WordPress output, and Portal surfaces never reach the code path. |
+| 5. Document tables were forced LTR | Document tables now inherit the document direction and alignment (Persian RTL by default) with horizontal overflow retained; LTR is available only through an explicit `dir="ltr"` or the `.dzn-table--ltr` opt-in. |
+| 6. Print rules leaked to every surface | Every print rule is scoped through `body.dzn-document-body`, a class added only to singular post/page document responses that are not the front page and not a Student or Teacher Portal screen. The homepage, archives, Portal screens, feeds and REST responses keep their own print behaviour, and a static check fails if any print selector is unscoped. |
+
+
 ## Why this round exists
 
 Legal, policy and help content (shipping, returns, privacy, terms, teaching guidance) had no shared
@@ -71,6 +88,14 @@ Executed:
 - `php` lint of all 62 theme PHP files in a `php:8.3-cli` container — no failures.
 - CSS brace balance and the token/palette parity check — pass.
 
+- Correction round 1 (same disposable WordPress runtime): the article rendered with an
+  entity-encoded `>` in a heading attribute, a Persian table and the outline; every generated id
+  matched `^[\p{L}\p{N}-]+$` and no id repeated; a paginated document rendered
+  `dzn-document__pagination` with the localised `aria-label="صفحه‌های این سند"`, the current page marked
+  and a link to the second page, while still receiving no outline; `apply_filters( 'the_content', … )`
+  outside document rendering and a full archive loop produced **no** generated heading ids; the
+  document body class was present on a singular post and absent on the homepage and on a Student
+  Portal page template.
 - Real WordPress rendering (disposable WordPress 6.8.3 + MariaDB 11.4.13, the candidate theme the only
   active theme, driven with WP-CLI outside the repository): the theme's own `single.php` resolves for a
   single post, the Policy page template resolves for a page carrying

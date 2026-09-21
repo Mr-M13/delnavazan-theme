@@ -96,3 +96,14 @@ outline, related content and floating actions for every document mode.
 Content containing `<!--nextpage-->` is left entirely to core, so those pages render without generated
 anchors or an outline rather than changing page-splitting behaviour.
 
+### Correction round 1 decisions — approved
+
+- Anchoring is a **read-only**, document-scoped operation: the canonical `the_content` pipeline is still
+  consumed (so formatting and shortcodes behave normally), but nothing is registered globally, so no
+  other surface can be mutated.
+- Print behaviour is opt-in per surface: the document body class is the only switch, and Portal or
+  homepage print output must remain the platform's own.
+- Document tables follow the document writing direction; LTR is an explicit author choice, not a
+  template default.
+- A heading whose opening tag cannot be parsed confidently is left untouched rather than rewritten:
+  losing a table-of-contents entry is safer than corrupting authored content.
