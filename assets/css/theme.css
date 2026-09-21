@@ -6,7 +6,7 @@
   font-display: swap;
 }
 
-@layer reset, tokens, base, layout, components, content, utilities;
+@layer reset, tokens, base, layout, components, content, document, utilities;
 
 
 /* =========================================================
@@ -250,6 +250,11 @@
 
     --dzn-content: 47.5rem;
     --dzn-wide: 73.75rem;
+
+    /* Reusable document measure for Article, Policy and General content pages. */
+    --dzn-measure-document: 43rem;
+    --dzn-measure-outline: 15rem;
+    --dzn-scroll-offset: 5.5rem;
 
     --dzn-gutter:
       clamp(
@@ -5907,6 +5912,529 @@
     }
   }
 }
+
+
+
+/* =========================================================
+   DOCUMENT (SINGLE CONTENT PAGE V1)
+   ========================================================= */
+
+@layer document {
+
+  .dzn-document-layout {
+    max-inline-size:
+      calc(
+        var(--dzn-measure-document)
+        + 2 * var(--dzn-measure-outline)
+        + 4rem
+      );
+  }
+
+  .dzn-document {
+    display:
+      flex;
+
+    flex-direction:
+      column;
+
+    gap:
+      var(--dzn-space-6);
+  }
+
+  .dzn-document__header {
+    display:
+      flex;
+
+    flex-direction:
+      column;
+
+    gap:
+      var(--dzn-space-3);
+  }
+
+  .dzn-document__meta {
+    display:
+      flex;
+
+    flex-wrap:
+      wrap;
+
+    gap:
+      var(--dzn-space-3);
+
+    align-items:
+      center;
+
+    margin:
+      0;
+  }
+
+  .dzn-document__meta
+  > :where(
+    span,
+    a
+  ) {
+    color:
+      var(--dzn-color-text-muted);
+  }
+
+  .dzn-document__categories
+  :where(
+    a,
+    a:visited
+  ) {
+    color:
+      var(--dzn-color-accent);
+
+    text-decoration:
+      none;
+  }
+
+  .dzn-document__categories
+  :where(
+    a:hover,
+    a:focus-visible
+  ) {
+    color:
+      var(--dzn-color-action-primary-hover);
+
+    text-decoration:
+      underline;
+  }
+
+  .dzn-document__revision {
+    margin:
+      0;
+
+    color:
+      var(--dzn-color-text-muted);
+
+    font-size:
+      var(--dzn-text-small);
+  }
+
+  .dzn-document__featured-image {
+    margin:
+      0;
+  }
+
+  .dzn-document__body {
+    display:
+      grid;
+
+    grid-template-columns:
+      minmax(0, 1fr);
+
+    gap:
+      var(--dzn-space-6);
+
+    /*
+     * The document column owns the reading measure: the shared prose rules keep
+     * consuming --dzn-content, so a document never needs a parallel type scale.
+     */
+    --dzn-content:
+      var(--dzn-measure-document);
+  }
+
+  .dzn-document__content {
+    min-inline-size:
+      0;
+  }
+
+  .dzn-document .dzn-prose
+  :where(
+    h2,
+    h3
+  ) {
+    scroll-margin-block-start:
+      var(--dzn-scroll-offset);
+  }
+
+  @media (min-width: 64rem) {
+
+    .dzn-document__body {
+      grid-template-columns:
+        var(--dzn-measure-outline)
+        minmax(0, var(--dzn-measure-document));
+
+      justify-content:
+        center;
+
+      gap:
+        var(--dzn-space-7);
+    }
+  }
+
+  .dzn-toc {
+    font-size:
+      var(--dzn-text-nav);
+  }
+
+  /* The desktop outline is the sticky companion; the mobile outline is a disclosure. */
+  .dzn-toc--desktop {
+    display:
+      none;
+  }
+
+  .dzn-toc--mobile {
+    display:
+      block;
+  }
+
+  @media (min-width: 64rem) {
+
+    .dzn-toc--desktop {
+      display:
+        block;
+
+      position:
+        sticky;
+
+      inset-block-start:
+        var(--dzn-scroll-offset);
+
+      align-self:
+        start;
+
+      max-block-size:
+        calc(100vh - var(--dzn-scroll-offset) - var(--dzn-space-5));
+
+      overflow:
+        auto;
+    }
+
+    .dzn-toc--mobile {
+      display:
+        none;
+    }
+  }
+
+  .dzn-toc__title {
+    margin-block:
+      0
+      var(--dzn-space-3);
+
+    color:
+      var(--dzn-color-text-secondary);
+
+    font-size:
+      1rem;
+  }
+
+  .dzn-toc__summary {
+    display:
+      flex;
+
+    align-items:
+      center;
+
+    justify-content:
+      space-between;
+
+    gap:
+      var(--dzn-space-3);
+
+    padding-block:
+      var(--dzn-space-3);
+
+    padding-inline:
+      var(--dzn-space-4);
+
+    border:
+      1px solid
+      var(--dzn-color-border);
+
+    border-radius:
+      var(--dzn-radius-sm);
+
+    background:
+      var(--dzn-color-surface);
+
+    color:
+      var(--dzn-color-text-secondary);
+
+    cursor:
+      pointer;
+  }
+
+  .dzn-toc__summary-label {
+    font-weight:
+      600;
+  }
+
+  .dzn-toc__summary-icon {
+    inline-size:
+      .5rem;
+
+    block-size:
+      .5rem;
+
+    border-inline-end:
+      2px solid
+      currentColor;
+
+    border-block-end:
+      2px solid
+      currentColor;
+
+    transform:
+      rotate(45deg);
+
+    transition:
+      transform .2s ease;
+  }
+
+  .dzn-toc[open]
+  .dzn-toc__summary-icon {
+    transform:
+      rotate(-135deg);
+  }
+
+  .dzn-toc__panel {
+    padding-block:
+      var(--dzn-space-4);
+
+    padding-inline:
+      var(--dzn-space-4);
+  }
+
+  .dzn-toc__list {
+    display:
+      flex;
+
+    flex-direction:
+      column;
+
+    gap:
+      var(--dzn-space-2);
+
+    margin:
+      0;
+
+    padding:
+      0;
+
+    list-style:
+      none;
+  }
+
+  .dzn-toc__item--level-3 {
+    padding-inline-start:
+      var(--dzn-space-4);
+  }
+
+  .dzn-toc__link {
+    display:
+      block;
+
+    padding-inline-start:
+      var(--dzn-space-3);
+
+    border-inline-start:
+      2px solid
+      transparent;
+
+    color:
+      var(--dzn-color-text-secondary);
+
+    text-decoration:
+      none;
+
+    line-height:
+      1.6;
+  }
+
+  .dzn-toc__link:hover,
+  .dzn-toc__link:focus-visible {
+    border-inline-start-color:
+      var(--dzn-color-accent);
+
+    color:
+      var(--dzn-color-action-primary-hover);
+  }
+
+  .dzn-document__print-hint {
+    margin-block:
+      var(--dzn-space-6)
+      0;
+
+    color:
+      var(--dzn-color-text-muted);
+
+    font-size:
+      var(--dzn-text-small);
+  }
+
+  .dzn-document__related {
+    padding-block-start:
+      var(--dzn-space-6);
+
+    border-block-start:
+      1px solid
+      var(--dzn-color-border);
+  }
+
+  .dzn-document__related-title {
+    margin-block:
+      0
+      var(--dzn-space-4);
+
+    font-size:
+      var(--dzn-heading-section);
+  }
+
+  .dzn-document__related-list {
+    display:
+      grid;
+
+    gap:
+      var(--dzn-space-3);
+
+    margin:
+      0;
+
+    padding:
+      0;
+
+    list-style:
+      none;
+  }
+
+  @media (min-width: 48rem) {
+
+    .dzn-document__related-list {
+      grid-template-columns:
+        repeat(
+          auto-fit,
+          minmax(
+            min(100%, 16rem),
+            1fr
+          )
+        );
+    }
+  }
+
+  .dzn-document__related-link {
+    display:
+      block;
+
+    padding:
+      var(--dzn-space-4);
+
+    border:
+      1px solid
+      var(--dzn-color-border);
+
+    border-radius:
+      var(--dzn-radius-sm);
+
+    background:
+      var(--dzn-color-surface-elevated);
+
+    color:
+      var(--dzn-color-text-primary);
+
+    text-decoration:
+      none;
+  }
+
+  .dzn-document__related-link:hover,
+  .dzn-document__related-link:focus-visible {
+    border-color:
+      var(--dzn-color-action-primary);
+
+    color:
+      var(--dzn-color-action-primary-hover);
+  }
+
+  /* Policy documents stay deliberately plain: no promotional or card treatment. */
+  .dzn-document--policy
+  .dzn-document__related,
+  .dzn-document--policy
+  .dzn-document__featured-image {
+    display:
+      none;
+  }
+
+  .dzn-document--policy
+  .dzn-prose
+  :where(
+    h2,
+    h3
+  ) {
+    color:
+      var(--dzn-color-text-secondary);
+  }
+}
+
+
+/* =========================================================
+   PRINT
+   ========================================================= */
+
+@media print {
+
+  .site-header,
+  .site-footer,
+  .dzn-floating-whatsapp,
+  .dzn-toc,
+  .dzn-document__related,
+  .dzn-document__print-hint,
+  .skip-link,
+  .comments-area,
+  .dzn-floating-whatsapp__label {
+    display:
+      none !important;
+  }
+
+  body {
+    background:
+      #ffffff;
+
+    color:
+      #000000;
+  }
+
+  .dzn-document,
+  .dzn-document__body,
+  .dzn-document__content,
+  .dzn-document__body
+  .dzn-prose
+  > * {
+    display:
+      block;
+
+    max-inline-size:
+      none;
+
+    inline-size:
+      auto;
+  }
+
+  .dzn-document__body {
+    grid-template-columns:
+      minmax(0, 1fr);
+  }
+
+  .dzn-document
+  .dzn-prose
+  :where(
+    a,
+    a:visited
+  ) {
+    color:
+      #000000;
+
+    text-decoration:
+      underline;
+  }
+
+  .entry-title {
+    font-size:
+      1.6rem;
+  }
+}
+
 
 
 /* =========================================================
