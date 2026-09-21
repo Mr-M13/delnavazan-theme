@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.7.0 — 2026-09-21 — Single Content Page V1 (candidate, unmerged)
+
+- Added one reusable Persian RTL document system for Article, Policy and General/Help content pages, sharing the existing header, footer, palette, typography and prose rules.
+- Added deterministic H2/H3 anchors on the canonical `the_content` pipeline: authored ids are preserved verbatim, repeated ids and repeated headings resolve in document order with `-2`, `-3`, … and empty headings fall back to a positional `section-N`. Anchoring is idempotent.
+- Added a JavaScript-free table of contents rendered only when the outline has at least three sections: a sticky, labelled desktop navigation plus a native `<details>`/`<summary>` disclosure for small screens. The hidden variant is `display: none` and therefore out of the accessibility tree at that breakpoint.
+- Added Article mode (categories, publication metadata, reading time, featured image, related articles from existing categories, previous/next) and restrained Policy mode (publication and last-revision metadata, no categories, no featured image, no related content, no reading time, print support) selected through a standard page template.
+- Added General/Help mode as the neutral default for pages, and introduced the 43rem document measure by scoping the shared `--dzn-content` token.
+- Added `@media print` rules that remove site chrome, the outline, related content and hint text.
+- Student Portal and Teacher Portal templates, assets and fixtures were not modified; `assets/css/portal.css` stays independent of every document rule.
+- Validation: static theme validation (now including the document contract), portal dialog tests, `node --check` on every theme script, PHP lint over all theme PHP files and the dependency-free content-page render suite all pass locally. WordPress runtime, browser accessibility/responsive/RTL and print inspection remain staging gates.
+- Candidate only: not merged, not deployed. See [Single Content Page V1](docs/CONTENT-PAGE-V1.md).
+
 ## 0.6.0 — 2026-09-20 — Teacher Portal V1
 
 - Fast-forwarded independently approved implementation candidate `6ce6718c3038faf892542d033b73d021800d28ee` (tree `8c27144abd3a84d9e8037f3cf92abb7f962742f0`) to `main` and closed Teacher Portal V1 repository work. No deployment occurred; live WordPress, browser, responsive and RTL verification remain staging gates.

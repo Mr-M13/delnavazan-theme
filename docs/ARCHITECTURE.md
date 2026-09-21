@@ -25,7 +25,8 @@ The theme consumes display-ready values only. It must not become a second applic
 3. Layout: containers, site chrome, reading width, grids and responsive rules.
 4. Components: buttons, cards, notices, badges, form controls and states.
 5. Content: articles, captions, quotes, media and legacy Gutenberg compatibility.
-6. Templates: WordPress hierarchy and stable wrappers.
+6. Document: the reusable Article/Policy/General document presentation (measure, outline, print).
+7. Templates: WordPress hierarchy and stable wrappers.
 
 ## Data contract
 
@@ -36,6 +37,19 @@ Theme components receive arrays of display values. A plugin, block render callba
 Portal Home and Account are dedicated classic page templates sharing a Portal shell and reusable components. `assets/css/portal.css` and `assets/js/portal.js` load only on those templates and the guarded preview template, isolating the accepted public Theme.
 
 The preview fixture is available only to a user with `edit_theme_options` outside the WordPress `production` environment. It is synthetic, in memory, visibly labelled, restricted to `.invalid` contact destinations and never exposed through the real Home or Account templates. Unknown Lesson presentation states fail safely at the render boundary and cannot expose Lesson actions.
+
+## Single Content Page V1
+
+`inc/content-page.php` owns one presentation-only document system: mode resolution, deterministic
+H2/H3 anchors, the outline gate, presentation-only reading time and the document contract consumed by
+`template-parts/content/content-document.php`. `single.php`, `page.php` and
+`page-templates/content-policy.php` all render that one template with an explicit mode, and
+`assets/css/theme.css` keeps the document rules in a dedicated `document` cascade layer so the
+existing layers and tokens stay authoritative. The document column is `--dzn-measure-document: 43rem`,
+which the shared prose rules inherit by scoping `--dzn-content`.
+
+The system stores nothing, performs no protected read, and adds no JavaScript. See
+[Single Content Page V1](CONTENT-PAGE-V1.md).
 
 ## JavaScript policy
 

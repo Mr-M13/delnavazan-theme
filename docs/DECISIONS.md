@@ -63,3 +63,36 @@ The current six-destination WordPress menu remains the information architecture.
 ## Repository ownership — approved
 
 `Mr-M13/delnavazan-theme` is the dedicated authoritative code home. The Platform repository remains explicitly out of scope.
+
+## Single Content Page V1 — Article, Policy and General documents
+
+### Mode selection — approved
+
+Posts are Articles; pages are General/Help unless they explicitly select the `سیاست — Policy (Persian
+RTL)` page template. The mode is therefore selected with a standard WordPress mechanism, not a custom
+field and not a bespoke authoring screen.
+
+### Anchor generation — approved
+
+Anchors are generated deterministically in one pass over the rendered content on the canonical
+`the_content` pipeline (priority 20), and the outline is derived from that same pass, so the table of
+contents can never link to an anchor that was not rendered. Authored ids are preserved; duplicates
+resolve in document order; empty headings fall back to `section-N`. Anchoring is idempotent.
+
+### Outline presentation — approved
+
+The desktop outline is a sticky labelled navigation; the mobile outline is a native `<details>`
+disclosure. Rendering the same list twice and toggling it by media query keeps the system free of
+JavaScript and keeps keyboard and screen-reader behaviour native. No fake modal dialog is introduced.
+
+### Policy restraint and print — approved
+
+Policy mode omits categories, featured image, related content and reading time, keeps only publication
+and last-revision metadata, and enables print support. `@media print` removes the header, footer,
+outline, related content and floating actions for every document mode.
+
+### Paginated content — accepted V1 limitation
+
+Content containing `<!--nextpage-->` is left entirely to core, so those pages render without generated
+anchors or an outline rather than changing page-splitting behaviour.
+

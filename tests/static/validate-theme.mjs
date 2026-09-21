@@ -24,6 +24,11 @@ const requiredFiles = [
   'assets/js/teacher-portal.js',
   'inc/portal.php',
   'inc/teacher-portal.php',
+  'inc/content-page.php',
+  'page-templates/content-policy.php',
+  'template-parts/content/content-document.php',
+  'template-parts/content/table-of-contents.php',
+  'template-parts/content/related-content.php',
   'page-templates/student-portal-home.php',
   'page-templates/student-portal-account.php',
   'page-templates/student-portal-preview.php',
@@ -41,8 +46,8 @@ for (const relative of requiredFiles) {
 }
 
 const style = fs.readFileSync(path.join(theme, 'style.css'), 'utf8');
-if (!/^Version:\s*0\.6\.0$/m.test(style)) {
-	throw new Error('Teacher Portal V1 candidate must identify as Theme 0.6.0.');
+if (!/^Version:\s*0\.7\.0$/m.test(style)) {
+	throw new Error('Single Content Page V1 candidate must identify as Theme 0.7.0.');
 }
 
 const themeJson = JSON.parse(fs.readFileSync(path.join(theme, 'theme.json'), 'utf8'));
@@ -61,6 +66,8 @@ for (const role of expectedRoles) {
 }
 
 const css = fs.readFileSync(path.join(theme, 'assets/css/theme.css'), 'utf8');
+const documentCss = css.slice(css.indexOf('@layer document'), css.indexOf('@media print'));
+
 const cssTokens = new Map(
   [...css.matchAll(/--dzn-color-([a-z-]+):\s*(#[0-9a-f]{3,8});/gi)]
     .map(([, slug, color]) => [slug, color.toLowerCase()]),
@@ -166,6 +173,115 @@ for (const prohibitedDestination of ['جلسات', 'پیام‌ها', 'سفار�
   if (portalNav.includes(prohibitedDestination)) {
     throw new Error(`Prohibited Portal top-level destination: ${prohibitedDestination}`);
   }
+}
+
+// ---------------------------------------------------------------------------
+// Single Content Page V1 — Article / Policy / General document system
+// ---------------------------------------------------------------------------
+const contentPage = fs.readFileSync(path.join(theme, 'inc/content-page.php'), 'utf8');
+const documentPartial = fs.readFileSync(path.join(theme, 'template-parts/content/content-document.php'), 'utf8');
+const tocPartial = fs.readFileSync(path.join(theme, 'template-parts/content/table-of-contents.php'), 'utf8');
+const relatedPartial = fs.readFileSync(path.join(theme, 'template-parts/content/related-content.php'), 'utf8');
+const policyTemplate = fs.readFileSync(path.join(theme, 'page-templates/content-policy.php'), 'utf8');
+const singleTemplate = fs.readFileSync(path.join(theme, 'single.php'), 'utf8');
+const pageTemplate = fs.readFileSync(path.join(theme, 'page.php'), 'utf8');
+
+for (const mode of ['article', 'policy', 'general']) {
+	if (!contentPage.includes(`'${mode}'`)) throw new Error(`Missing content-page mode: ${mode}`);
+}
+for (const fn of [
+	'dzn_theme_content_page_mode',
+	'dzn_theme_content_page_anchor_content',
+	'dzn_theme_content_page_unique_anchor',
+	'dzn_theme_content_page_reading_minutes',
+	'dzn_theme_content_page_presentation',
+	'dzn_theme_content_page_data',
+]) {
+	if (!contentPage.includes(`function ${fn}(`)) throw new Error(`Missing content-page function: ${fn}`);
+}
+if (!contentPage.includes("add_filter( 'the_content', 'dzn_theme_content_page_filter_content', 20 )")) {
+	throw new Error('Anchoring must run on the canonical the_content pipeline.');
+}
+if (!contentPage.includes('return array( 2, 3 );') || contentPage.includes("'h1'")) {
+	throw new Error('Only H2/H3 may join the document outline.');
+}
+if (!contentPage.includes('function dzn_theme_content_page_toc_minimum()')) {
+	throw new Error('The table-of-contents gate must be explicit.');
+}
+if (!contentPage.includes("return 3;")) {
+	throw new Error('The table of contents must require three outline sections.');
+}
+if (!contentPage.includes("'page-templates/content-policy.php'")) {
+	throw new Error('Policy mode must be selected through the standard page template.');
+}
+if (!contentPage.includes('<!--nextpage-->')) {
+	throw new Error('Paginated posts must be left to core.');
+}
+for (const [name, source] of [['single.php', singleTemplate], ['page.php', pageTemplate], ['page-templates/content-policy.php', policyTemplate]]) {
+	if (!source.includes("'template-parts/content/content'") || !source.includes("'document'") || !source.includes("'mode' =>")) {
+		throw new Error(`${name} must render the shared document template with an explicit mode.`);
+	}
+}
+if (!singleTemplate.includes("'mode' => 'article'")) throw new Error('Single posts must render Article mode.');
+if (!policyTemplate.includes("'mode' => 'policy'")) throw new Error('The Policy template must render Policy mode.');
+if (!pageTemplate.includes('dzn_theme_content_page_mode()')) throw new Error('Pages must resolve their presentation mode.');
+if (!documentPartial.includes("'variant' => 'desktop'") || !documentPartial.includes("'variant' => 'mobile'")) {
+	throw new Error('The document must render both outline variants.');
+}
+if (!documentPartial.includes('requires_toc')) {
+	throw new Error('The document outline must be gated by the outline size.');
+}
+if (!documentPartial.includes('the_content()')) {
+	throw new Error('The document body must render through the_content().');
+}
+if (!documentPartial.includes("'show_print_hint'")) {
+	throw new Error('Policy print support must be driven by the presentation contract.');
+}
+if (!tocPartial.includes('<details') || !tocPartial.includes('<summary')) {
+	throw new Error('The mobile outline must be a native disclosure.');
+}
+if (!tocPartial.includes('dzn-toc--desktop') || !tocPartial.includes('aria-labelledby')) {
+	throw new Error('The desktop outline must be a labelled sticky navigation.');
+}
+if (/aria-modal|role="dialog"/.test(tocPartial)) {
+	throw new Error('The outline must not pretend to be a modal dialog.');
+}
+if (/fetch\s*\(|XMLHttpRequest|\.submit\s*\(/.test(tocPartial + documentPartial)) {
+	throw new Error('The document system must stay JavaScript-free.');
+}
+if (!relatedPartial.includes('wp_get_post_categories') || !relatedPartial.includes('WP_Query')) {
+	throw new Error('Related content must reuse existing categories and standard WP queries.');
+}
+if (!relatedPartial.includes('wp_reset_postdata()')) {
+	throw new Error('Related content must restore the main query.');
+}
+if (/amelia|delnavazan-platform|booking-requests|\$wpdb|wp_remote_|register_rest_route|get_post_meta\(\s*[^,]+, '\$/i.test(contentPage + documentPartial + tocPartial + relatedPartial + policyTemplate)) {
+	throw new Error('The document system must stay presentation-only.');
+}
+if (!css.includes('--dzn-measure-document: 43rem')) {
+	throw new Error('The document measure must be the 43rem document column.');
+}
+if (!documentCss.includes('.dzn-document__body')) {
+	throw new Error('Document layout rules are missing.');
+}
+if (!documentCss.includes('position:\n        sticky')) {
+	throw new Error('The desktop outline must be sticky.');
+}
+if (!documentCss.includes('@media (min-width: 64rem)')) {
+	throw new Error('The document system must define its desktop breakpoint.');
+}
+if (!css.split('@media print')[1] || !/dzn-toc/.test(css.split('@media print')[1])) {
+	throw new Error('Print support must remove the outline and site chrome.');
+}
+const portalCssForDocument = fs.readFileSync(path.join(theme, 'assets/css/portal.css'), 'utf8');
+if (/dzn-document/.test(portalCssForDocument)) {
+	throw new Error('Student and Teacher Portal CSS must remain independent of the document system.');
+}
+for (const portalFile of ['page-templates/student-portal-home.php', 'page-templates/student-portal-account.php', 'page-templates/teacher-portal-home.php']) {
+	const portalSource = fs.readFileSync(path.join(theme, portalFile), 'utf8');
+	if (/content-document|table-of-contents|related-content/.test(portalSource)) {
+		throw new Error(`Portal template ${portalFile} must not consume the document system.`);
+	}
 }
 
 let braces = 0;

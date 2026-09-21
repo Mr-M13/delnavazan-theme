@@ -2,7 +2,7 @@
 
 Authoritative repository for the Delnavazan whole-site production WordPress theme.
 
-Current Theme version: **0.5.0**
+Current Theme version: **0.7.0 (candidate)**
 Implementation base: **recovered and accepted 0.4.6 source**
 Status: **Student Portal V1 merged to `main`; not deployed to staging or production**
 
@@ -26,6 +26,11 @@ Status: **Student Portal V1 merged to `main`; not deployed to staging or product
 - `tests/` — dependency-free static validation.
 - `scripts/` — validation and package helpers.
 - `dist/` — ignored local build output.
+
+Single Content Page V1 adds one reusable Article, Policy and General/Help document system with
+deterministic heading anchors, a JavaScript-free table of contents, restrained policy presentation and
+print support; see [Single Content Page V1](docs/CONTENT-PAGE-V1.md). Student and Teacher Portal
+presentation is unchanged.
 
 Student Portal V1 adds independently reviewed, isolated Home and Account presentation templates. It accepts display-ready data through a filter and includes a guarded development preview; see [Student Portal V1](docs/STUDENT-PORTAL-V1.md). WordPress runtime, browser accessibility and responsive/RTL visual checks remain staging gates.
 
