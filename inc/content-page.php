@@ -244,30 +244,26 @@ function dzn_theme_content_page_reserved_ids( $post = null ) {
 }
 
 /**
- * The offset of the `>` that closes the opening tag starting at `$start`.
+ * Scan one opening tag starting at `$start` and return its closing `>` or the boundary of its
+ * malformed lexeme.
  *
  * Quoted attribute values are honoured, so a legal `>` or `<` inside a title/data attribute can never
- * truncate the tag. A tag whose quotes never close has no end and is reported as malformed.
+ * truncate the tag. When the tag cannot be scanned confidently, `end` is false and `malformed_end` is
+ * the first offset from which tokenization may safely resume. Pseudo-tags embedded in a malformed
+ * lexeme are never tokenized as markup.
  *
  * @param string $html  Rendered content.
  * @param int    $start Offset of the `<` that opens the tag.
- * @return int|false
+ * @return array{end:int|false,malformed_end:int|null}
  */
-function dzn_theme_content_page_tag_end( $html, $start ) {
+function dzn_theme_content_page_tag_scan( $html, $start ) {
 	$length = strlen( $html );
-	$limit  = (int) $start + 2048;
 	$quote  = '';
 
 	for ( $index = (int) $start; $index < $length; $index++ ) {
-		if ( $index > $limit ) {
-			return false;
-		}
-
 		$character = $html[ $index ];
 
 		if ( '' !== $quote ) {
-			// Only the active delimiter closes the value: an apostrophe inside a double-quoted value
-			// (or a double quote inside a single-quoted value) is ordinary content.
 			if ( $character === $quote ) {
 				$quote = '';
 			}
@@ -282,15 +278,77 @@ function dzn_theme_content_page_tag_end( $html, $start ) {
 		// A new tag starting while this one is still open means it was never closed (the opening `<`
 		// of this very tag is not a nested tag).
 		if ( '<' === $character && $index > (int) $start ) {
-			return false;
+			return array(
+				'end'          => false,
+				'malformed_end' => dzn_theme_content_page_tag_gt_boundary( $html, $index ),
+			);
 		}
 
 		if ( '>' === $character ) {
-			return $index;
+			return array(
+				'end'          => $index,
+				'malformed_end' => null,
+			);
 		}
 	}
 
-	return false;
+	// Unterminated quoted attribute or unclosed tag: the malformed lexeme consumes the remainder.
+	return array(
+		'end'          => false,
+		'malformed_end' => $length,
+	);
+}
+
+/**
+ * The exclusive offset just past the first `>` outside quotes at or after `$start`.
+ *
+ * When a tag is malformed because a nested `<` appeared before its closing `>`, this is the structural
+ * boundary at which tokenization may resume without guessing inside the malformed lexeme.
+ *
+ * @param string $html  Rendered content.
+ * @param int    $start Offset of the nested `<`.
+ * @return int Exclusive boundary offset.
+ */
+function dzn_theme_content_page_tag_gt_boundary( $html, $start ) {
+	$length = strlen( $html );
+	$quote  = '';
+
+	for ( $index = (int) $start; $index < $length; $index++ ) {
+		$character = $html[ $index ];
+
+		if ( '' !== $quote ) {
+			if ( $character === $quote ) {
+				$quote = '';
+			}
+			continue;
+		}
+
+		if ( '"' === $character || "'" === $character ) {
+			$quote = $character;
+			continue;
+		}
+
+		if ( '>' === $character ) {
+			return $index + 1;
+		}
+	}
+
+	return $length;
+}
+
+/**
+ * The offset of the `>` that closes the opening tag starting at `$start`.
+ *
+ * Kept as the single quote-aware boundary helper for callers that only need the successful end.
+ *
+ * @param string $html  Rendered content.
+ * @param int    $start Offset of the `<` that opens the tag.
+ * @return int|false
+ */
+function dzn_theme_content_page_tag_end( $html, $start ) {
+	$scan = dzn_theme_content_page_tag_scan( $html, $start );
+
+	return false === $scan['end'] ? false : $scan['end'];
 }
 
 /**
@@ -360,30 +418,64 @@ function dzn_theme_content_page_ids( $html ) {
  * @return array{pairs:array<int,array<string,mixed>>,malformed:array<int,array<int,int>>}
  */
 function dzn_theme_content_page_heading_tokens( $content ) {
-	$tokens = array();
+	$content   = (string) $content;
+	$length    = strlen( $content );
+	$tokens    = array();
+	$malformed = array();
+	$offset    = 0;
 
-	if ( preg_match_all( '/<(\/?)h([1-6])(?=[\s\/>])/i', (string) $content, $matches, PREG_OFFSET_CAPTURE ) ) {
-		foreach ( $matches[0] as $index => $candidate ) {
-			$start   = (int) $candidate[1];
-			$closing = '/' === $matches[1][ $index ][0];
-			$tag_end = dzn_theme_content_page_tag_end( (string) $content, $start );
+	while ( $offset < $length ) {
+		$start = strpos( $content, '<', $offset );
 
-			if ( false === $tag_end ) {
-				continue;
+		if ( false === $start ) {
+			break;
+		}
+
+		$next = $start + 1 < $length ? $content[ $start + 1 ] : '';
+		$tag_like = '' !== $next && ( '/' === $next || ( $next >= 'a' && $next <= 'z' ) || ( $next >= 'A' && $next <= 'Z' ) );
+
+		if ( ! $tag_like ) {
+			$offset = $start + 1;
+			continue;
+		}
+
+		if ( ! preg_match( '/\G<(\/?)h([1-6])(?=[\s\/>])/i', $content, $heading, 0, $start ) ) {
+			// A non-heading tag can still contain a heading-looking substring inside its malformed
+			// attribute/text, so its lexeme boundary must be scanned before tokenization resumes.
+			$scan = dzn_theme_content_page_tag_scan( $content, $start );
+
+			if ( false === $scan['end'] ) {
+				$malformed[] = array( $start, $scan['malformed_end'] );
+				$offset      = $scan['malformed_end'];
+			} else {
+				$offset = $scan['end'] + 1;
 			}
 
-			$tokens[] = array(
-				'type'  => $closing ? 'close' : 'open',
-				'level' => (int) $matches[2][ $index ][0],
-				'start' => $start,
-				'end'   => $tag_end,
-			);
+			continue;
 		}
+
+		$closing = '/' === $heading[1];
+		$level   = (int) $heading[2];
+		$scan    = dzn_theme_content_page_tag_scan( $content, $start );
+
+		if ( false === $scan['end'] ) {
+			$malformed[] = array( $start, $scan['malformed_end'] );
+			$offset      = $scan['malformed_end'];
+			continue;
+		}
+
+		$tokens[] = array(
+			'type'  => $closing ? 'close' : 'open',
+			'level' => $level,
+			'start' => $start,
+			'end'   => $scan['end'],
+		);
+
+		$offset = $scan['end'] + 1;
 	}
 
-	$pairs     = array();
-	$malformed = array();
-	$stack     = array();
+	$pairs = array();
+	$stack = array();
 
 	foreach ( $tokens as $token ) {
 		if ( 'open' === $token['type'] ) {
