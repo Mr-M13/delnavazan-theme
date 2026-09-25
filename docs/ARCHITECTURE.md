@@ -1,64 +1,36 @@
-# Theme Architecture
+# Delnavazan Theme — Current Architecture
 
-## Decision
-
-Use a hybrid classic WordPress theme with `theme.json` rather than a full-site-editing-only theme.
-
-Why: the current site is Neve-based and its content is a mixture of core Gutenberg blocks, Otter blocks, Neve starter assets, inline page code, and page-scoped Delnavazan Enhancements assets. A hybrid theme preserves the WordPress template hierarchy and renders existing blocks unchanged while allowing a gradual move to native patterns and components.
+## Purpose
+Define the Theme's current presentation responsibility and its boundary with Platform.
 
 ## Ownership boundary
+Theme owns:
+- templates, layout, typography and visual tokens;
+- responsive/RTL presentation;
+- accessible markup and interaction affordances;
+- rendering of Platform-provided states/actions;
+- local preview/presentation composition.
 
-| Concern | Owner |
-| --- | --- |
-| URLs, post/page identity, content and SEO metadata | WordPress content + Rank Math |
-| Teacher, student, lesson, booking, eligibility and matching rules | Delnavazan Platform |
-| Payments, notification delivery and calendar behaviour | Delnavazan Platform/integration modules |
-| Markup, layout, type, colour, responsive behaviour and interaction states | Theme |
-| Temporary legacy presentation | Delnavazan Enhancements until explicitly migrated |
+Theme does not own:
+- canonical student/teacher/enrolment/Term/Lesson state;
+- scheduling, attendance, payment, renewal or notification authority;
+- provider credentials or external side-effect decisions;
+- duplicate business records used as a second source of truth.
 
-The theme consumes display-ready values only. It must not become a second application layer. Student Portal templates use the `dzn_theme_student_portal_view_model` filter as their sole future protected-read seam; an absent model produces an honest unavailable state.
-
-## Layers
-
-1. Tokens: semantic colour, type, spacing, radius, motion and layout values.
-2. Base: document, Persian typography, links, fields, focus and selection.
-3. Layout: containers, site chrome, reading width, grids and responsive rules.
-4. Components: buttons, cards, notices, badges, form controls and states.
-5. Content: articles, captions, quotes, media and legacy Gutenberg compatibility.
-6. Templates: WordPress hierarchy and stable wrappers.
+## Current structure
+- WordPress theme templates under `theme/`.
+- Shared styling through `style.css` / `theme.json`.
+- Student Portal V1 scaffold is a presentation surface only and consumes Platform contracts.
+- JavaScript should enhance interaction, not create hidden business authority.
 
 ## Data contract
+Every displayed operational state must have a defined Platform source. If the required Platform contract does not exist yet, the Theme should show a safe placeholder/disabled state rather than inventing behaviour.
 
-Theme components receive arrays of display values. A plugin, block render callback, or template controller may map domain objects into those arrays. The theme does not know internal Platform IDs, status transitions, capabilities, schema, or repositories.
+## Internationalisation / RTL
+Persian-first presentation is supported with RTL semantics. Latin identifiers, times, codes and mixed-language content must remain readable and directionally stable.
 
-## Student Portal presentation layer
+## Accessibility
+Semantic headings, labels, keyboard access, focus visibility, sufficient contrast and responsive layouts are baseline requirements.
 
-Portal Home and Account are dedicated classic page templates sharing a Portal shell and reusable components. `assets/css/portal.css` and `assets/js/portal.js` load only on those templates and the guarded preview template, isolating the accepted public Theme.
-
-The preview fixture is available only to a user with `edit_theme_options` outside the WordPress `production` environment. It is synthetic, in memory, visibly labelled and never exposed through the real Home or Account templates.
-
-## JavaScript policy
-
-JavaScript is progressive enhancement only. The public Theme includes a small navigation toggle with Escape close, focus return and initial-link focus. Portal JavaScript adds session-local announcement dismissal, native dialog controls and explicit presentation-only action feedback. It performs no fetch, submit, protected read or write. Native elements are preferred. No framework or general-purpose slider is included.
-
-## Accessibility baseline
-
-- Skip link and focus target.
-- Named navigation landmarks.
-- 44 px minimum interactive target.
-- Visible `:focus-visible` outline.
-- Reduced-motion handling.
-- Semantic article/cards and ordered heading expectations.
-- Explicit live regions for loading/error/empty states.
-- Logical properties for RTL.
-- LTR opt-in for code, tables, URLs and mixed-language content.
-- Public `fa-IR`/RTL language attributes without a WordPress/admin locale change.
-- Generic page H1 fallback that yields to an authored content H1.
-
-## Typography
-
-Vazirmatn is the compatibility baseline because it is already used on the site. Font files are not bundled in v0.2.0; staging must confirm a locally hosted font source with appropriate licences and no layout shift.
-
-## Versioning
-
-The theme uses semantic versions. Every production candidate must include a changelog, ZIP checksum, test report, screenshots and rollback instruction.
+## Staleness trigger
+Update after accepted template/component architecture changes, new portal surfaces, changed Platform/Theme ownership, or new data/action contracts. Maximum review interval: 45 days while Theme development is active.

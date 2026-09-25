@@ -1,65 +1,23 @@
-# Locked Decisions and Required Coordination
+# Delnavazan Theme — Current Decisions
 
-## Visual direction
+## Approved direction
+- Primary visual direction: Turquoise & Pomegranate / approved Option 2.
+- Front-end language direction: Persian-first.
+- Header direction: editorial rather than dense application chrome.
+- Theme repository owns presentation only; Platform owns operational/business authority.
+- RTL is first-class, not an afterthought.
+- Mobile behaviour and accessibility are release requirements.
+- Existing content must be preserved unless a content change is explicitly approved.
 
-Use the existing `Delnavazan Persian Palette Style Guide.png` as the authoritative exploration. The shortlist below preserves its naming and colour values.
+## Presentation rules
+- Prefer calm, readable layouts over dashboard-like density for public/content surfaces.
+- Mixed Persian/Latin text must preserve readable directionality.
+- Components should degrade safely when Platform data/actions are unavailable.
+- Theme may describe an action but must not silently infer whether the action is allowed.
+- Student Portal presentation must render Platform authority, not reproduce it.
 
-### Turquoise & Pomegranate / existing Option 2 — approved
+## Decisions requiring Hamed
+Any material change to visual direction, language strategy, navigation model, user-facing workflow, portal information architecture or content hierarchy requires Hamed before implementation is treated as approved.
 
-- Turquoise `#1E7B70`
-- Deep turquoise `#104A4D`
-- Blue `#315C82`
-- Pomegranate `#A33E48`
-- Saffron highlight `#D4AB4F`
-- Warm background `#FBF8F2`
-- Ink `#252726`
-- Typography: Estedad headings + Vazirmatn body
-- Character: refined, warm and unmistakably Persian without ornamental overload
-
-### B — Pomegranate & Midnight / existing Option 3
-
-- Pomegranate `#813842`
-- Deep pomegranate `#56272E`
-- Midnight `#25384A`
-- Gold `#B9914B`
-- Turquoise accent `#56898A`
-- Warm background `#FAF7F1`
-- Ink `#292725`
-- Typography: Estedad headings + Vazirmatn body
-- Character: luxurious, intimate and premium
-
-### C — Persian Lapis / existing Option 1
-
-- Lapis `#1E5A5F`
-- Deep lapis `#13283F`
-- Turquoise `#2A7F83`
-- Gold `#C69A45`
-- Pomegranate accent `#9D3D46`
-- Warm background `#FAF7F0`
-- Ink `#25282A`
-- Typography: Estedad headings + Vazirmatn body
-- Character: elegant, calm and timeless
-
-The existing Option 4, Contemporary Persian Minimal, remains documented but is not in the three-theme shortlist because it is the closest to the generic modern/startup feel Hamed asked us to avoid.
-
-Version 0.2.0 implements these source values as semantic tokens. Functional-state colours are accessibility extensions, not competing brand colours. Saffron remains a decorative highlight; blue is used for focus because it provides stronger contrast.
-
-## Front-end language strategy
-
-### Persian front end — approved
-
-Emit `lang="fa-IR" dir="rtl"` on public Persian pages and mark English legal text with `lang="en-AU" dir="ltr"` where needed. Keep admin locale independent if possible.
-
-The theme implements this with a front-end `language_attributes` filter only. It does not filter `locale`, change the Site Language option, or affect wp-admin/Ajax.
-
-## Header density
-
-### Editorial — approved
-
-Logo, six primary destinations and one restrained enrolment action; mobile opens a full-width panel.
-
-The current six-destination WordPress menu remains the information architecture. Enrolment receives restrained action treatment and portal links remain peers; no two-level Cultural Portal is introduced.
-
-## Repository ownership — approved
-
-`Mr-M13/delnavazan-theme` is the dedicated authoritative code home. The Platform repository remains explicitly out of scope.
+## Staleness trigger
+Update immediately after any approved visual/UX/language/navigation decision. Maximum review interval: 45 days during active Theme work.

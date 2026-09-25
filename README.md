@@ -1,47 +1,16 @@
-# Delnavazan Production Theme
+# Delnavazan Theme
 
-Authoritative repository for the Delnavazan whole-site production WordPress theme.
+The Theme is the presentation layer for Delnavazan. It renders Platform-owned data and actions and must not become a second business-authority system.
 
-Current Theme candidate: **0.5.0**
-Implementation base: **recovered and accepted 0.4.6 source**
-Status: **Student Portal V1 review candidate; inactive and not deployed to staging or production**
+## Current baseline
+- Documentation baseline: `student-portal-v1-theme-scaffold` / `0b78872`.
+- Theme work is currently parked while Platform is the critical path.
+- Exact live project status belongs in local `CD-LIVE-STATE.md`.
 
-## Vision
+## Canonical documents
+- `docs/ARCHITECTURE.md` — presentation architecture and Platform boundary.
+- `docs/DECISIONS.md` — approved visual, language, accessibility and UX decisions.
+- `docs/MIGRATION.md` — rollout, staging and rollback.
+- `docs/VALIDATION.md` — required validation/release evidence.
 
-> Build a bespoke, elegant, Persian-first Delnavazan design system and WordPress theme that becomes the stable visual shell for the academy, editorial content and future Delnavazan ecosystem, while Delnavazan Platform remains the independent operational engine underneath it.
-
-## Architecture
-
-- Hybrid classic WordPress theme: PHP template hierarchy plus `theme.json`.
-- Existing Gutenberg content renders through `the_content()`.
-- Public Persian documents use `fa-IR` and RTL without changing the WordPress/admin locale.
-- Editorial header, Turquoise & Pomegranate semantic tokens, and minimal dependency-free JavaScript.
-- Rank Math retains SEO metadata, canonical, social, schema and sitemap ownership.
-- The theme contains presentation only: no Platform database, workflow, booking, payment, matching, notification or calendar logic.
-
-## Repository layout
-
-- `theme/` — installable WordPress theme source.
-- `docs/` — architecture, decisions, production reconnaissance and migration/release records.
-- `tests/` — dependency-free static validation.
-- `scripts/` — validation and package helpers.
-- `dist/` — ignored local build output.
-
-Student Portal V1 adds isolated Home and Account presentation templates. It accepts display-ready data through a filter and includes a guarded development preview; see [Student Portal V1](docs/STUDENT-PORTAL-V1.md).
-
-## Local checks
-
-```sh
-./scripts/check-theme.sh
-./scripts/build-package.sh
-```
-
-`check-theme.sh` performs dependency-free static checks and runs `php -l` when PHP is available. PHP lint and WordPress runtime validation remain mandatory staging gates.
-
-The 0.4.6 base preserves an exact NIU staging Theme capture in its parent commit. Student Portal V1 extends that accepted source additively. Its Page 8 Gutenberg export and environment-specific WordPress state remain non-runtime references under `docs/fixtures/`; see [NIU 0.4.6 recovery](docs/NIU-0.4.6-RECOVERY.md).
-
-## Safety boundary
-
-This repository is independent from [`Mr-M13/delnavazan-platform`](https://github.com/Mr-M13/delnavazan-platform). Never place theme code in the Platform repository or move domain behaviour into this theme.
-
-No production activation or deployment is authorised by this repository initialization.
+Historical reconnaissance, old increment reports and recovery notes are retained under `docs/archive/history/` and Git history.
