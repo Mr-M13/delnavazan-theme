@@ -31,6 +31,9 @@ function dzn_theme_portal_templates() {
  * @return bool
  */
 function dzn_theme_is_portal_template() {
+	if ( dzn_theme_is_route( 'student-portal' ) || dzn_theme_is_route( 'dashboard' ) ) {
+		return true;
+	}
 	foreach ( dzn_theme_portal_templates() as $template ) {
 		if ( is_page_template( $template ) ) {
 			return true;
