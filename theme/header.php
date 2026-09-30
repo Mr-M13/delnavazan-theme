@@ -54,5 +54,8 @@
 			) );
 			?>
 		</nav>
+		<div class="site-header__account">
+			<a href="<?php echo esc_url( is_user_logged_in() ? home_url( '/dashboard/' ) : home_url( '/login/' ) ); ?>"><?php echo esc_html( is_user_logged_in() ? 'داشبورد' : 'ورود به پرتال' ); ?></a>
+		</div>
 	</div>
 </header>
