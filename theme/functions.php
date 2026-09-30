@@ -19,6 +19,8 @@ require_once get_template_directory() . '/inc/patterns.php';
 require_once get_template_directory() . '/inc/portal.php';
 require_once get_template_directory() . '/inc/teacher-portal.php';
 require_once get_template_directory() . '/inc/content-page.php';
+require_once get_template_directory() . '/inc/home.php';
+require_once get_template_directory() . '/inc/routes.php';
 
 /**
  * Randomise the Delnavazan homepage article Query Loop.
