@@ -6,6 +6,9 @@ function dzn_theme_teacher_portal_templates() {
 	return array( 'page-templates/teacher-portal-home.php', 'page-templates/teacher-portal-account.php', 'page-templates/teacher-portal-onboarding.php', 'page-templates/teacher-portal-preview.php' );
 }
 function dzn_theme_is_teacher_portal_template() {
+	if ( dzn_theme_is_route( 'teacher-portal' ) ) {
+		return true;
+	}
 	foreach ( dzn_theme_teacher_portal_templates() as $template ) { if ( is_page_template( $template ) ) { return true; } }
 	return false;
 }
