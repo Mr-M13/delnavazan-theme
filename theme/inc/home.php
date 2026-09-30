@@ -23,7 +23,7 @@ function dzn_theme_render_staging_homepage() {
 				<p class="dzn-home-hero__lead">دلنوازان مسیر یادگیری آنلاین ساز و آواز ایرانی برای فارسی‌زبانان خارج از ایران است؛ با آموزش زنده، برنامه‌ای روشن و همراهی انسانی.</p>
 				<div class="wp-block-buttons dzn-home-hero__actions">
 					<p class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="<?php echo esc_url( home_url( '/login/' ) ); ?>">ورود به پرتال</a></p>
-					<p class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="<?php echo esc_url( home_url( '/enrol/' ) ); ?>">شروع گفت‌وگو</a></p>
+					<p class="wp-block-button is-style-outline"><a class="wp-block-button__link wp-element-button" href="#dzn-audience-title">آشنایی با مسیر</a></p>
 				</div>
 			</div>
 			<div class="dzn-home-hero__media dzn-owned-media-slot dzn-owned-media-slot--hero" aria-hidden="true"></div>
