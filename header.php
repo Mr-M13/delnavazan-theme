@@ -55,7 +55,12 @@
 			?>
 		</nav>
 		<div class="site-header__account">
-			<a href="<?php echo esc_url( is_user_logged_in() ? home_url( '/dashboard/' ) : home_url( '/login/' ) ); ?>"><?php echo esc_html( is_user_logged_in() ? 'داشبورد' : 'ورود به پرتال' ); ?></a>
+			<?php if ( is_user_logged_in() ) : ?>
+				<a href="<?php echo esc_url( home_url( '/dashboard/' ) ); ?>">داشبورد</a>
+				<a href="<?php echo esc_url( wp_logout_url( home_url( '/' ) ) ); ?>">خروج</a>
+			<?php else : ?>
+				<a href="<?php echo esc_url( home_url( '/login/' ) ); ?>">ورود به پرتال</a>
+			<?php endif; ?>
 		</div>
 	</div>
 </header>
