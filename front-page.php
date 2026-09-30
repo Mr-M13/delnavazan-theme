@@ -15,7 +15,14 @@ get_header();
 	<?php while ( have_posts() ) : the_post(); ?>
 		<article id="post-<?php the_ID(); ?>" <?php post_class( 'entry entry--front dzn-home' ); ?>>
 			<div class="entry-content">
-				<?php the_content(); ?>
+				<?php
+				$content = trim( (string) get_the_content() );
+				if ( '' === $content || false !== strpos( $content, 'Welcome to WordPress. This is your first post.' ) ) {
+					dzn_theme_render_staging_homepage();
+				} else {
+					the_content();
+				}
+				?>
 			</div>
 		</article>
 	<?php endwhile; ?>
