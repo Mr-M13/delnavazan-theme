@@ -66,6 +66,20 @@ for (const role of expectedRoles) {
 }
 
 const css = fs.readFileSync(path.join(theme, 'assets/css/theme.css'), 'utf8');
+
+const buttonTypography = css.includes('font-family:\n      var(--dzn-font-body);')
+  && css.includes('button,\n    input[type="button"],')
+  && css.includes('.dzn-button,');
+if (!buttonTypography) {
+  throw new Error('Native and anchor buttons must use the canonical Persian font token.');
+}
+if (!css.includes('.dzn-button:visited,') || !css.includes('color:\n      var(--dzn-color-on-action);')) {
+  throw new Error('Visited primary button links must retain the on-action text colour.');
+}
+if (!css.includes('.dzn-button--secondary:link,') || !css.includes('background:\n      var(--dzn-color-surface);') || !css.includes('color:\n      var(--dzn-color-action-secondary);')) {
+  throw new Error('Secondary buttons must retain readable dark text on a light background.');
+}
+
 const documentCss = css.slice(css.indexOf('@layer document'), css.indexOf('@media print'));
 
 const cssTokens = new Map(
