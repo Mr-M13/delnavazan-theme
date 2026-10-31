@@ -278,20 +278,6 @@
     background:
       var(--dzn-color-background);
 
-  :where(
-    button,
-    input[type="button"],
-    input[type="submit"],
-    input[type="reset"],
-    .dzn-button,
-    .wp-element-button,
-    .wp-block-button__link
-  ) {
-    font-family:
-      var(--dzn-font-body);
-  }
-
-
     color:
       var(--dzn-color-text-primary);
 
@@ -308,6 +294,19 @@
     font-synthesis-weight: none;
     text-rendering: optimizeLegibility;
     overflow-wrap: break-word;
+  }
+
+  :where(
+    button,
+    input[type="button"],
+    input[type="submit"],
+    input[type="reset"],
+    .dzn-button,
+    .wp-element-button,
+    .wp-block-button__link
+  ) {
+    font-family:
+      var(--dzn-font-body);
   }
 
   h1,
